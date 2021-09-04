@@ -5,5 +5,8 @@
 	path = up
 	url = https://github.com/akavel/up.git
 [submodule "bash-history-cheat-sheet"]
-	path = bash-history-cheat-sheet
+	path = CHEAT-SHEETS/bash-history-cheat-sheet
 	url = https://github.com/pkrumins/bash-history-cheat-sheet.git
+[submodule "CHEAT-SHEETS/bash-shortcuts-cheat-sheet"]
+	path = CHEAT-SHEETS/bash-shortcuts-cheat-sheet
+	url = https://github.com/fliptheweb/bash-shortcuts-cheat-sheet.git
