@@ -14,3 +14,9 @@ Install packages by ...
 - node (e.g. json)
 - gem (e.g. lolcommits)
   etc.
+
+  To checkout on workstation:
+
+  #+begin_src bash
+    git clone --recursive git@github.com:chriad/gh-mirror.git
+  #+end_src
