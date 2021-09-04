@@ -20,3 +20,11 @@ Install packages by ...
   #+begin_src bash
     git clone --recursive git@github.com:chriad/gh-mirror.git
   #+end_src
+
+  1. On workstation:
+     git submodule add ...
+     git push
+
+  2. On folio:
+     git pull
+     git submodule update --init --recursive
