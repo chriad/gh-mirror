@@ -4,3 +4,6 @@
 [submodule "up"]
 	path = up
 	url = https://github.com/akavel/up.git
+[submodule "bash-history-cheat-sheet"]
+	path = bash-history-cheat-sheet
+	url = https://github.com/pkrumins/bash-history-cheat-sheet.git

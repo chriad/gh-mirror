@@ -1,4 +1,16 @@
  - Software from github that I'd like to install on my machine but is not accessible through apt/flatpack/snap package managers and must be installed manually (e.g. compiled)
+ - Software that must be cutting-edge and is outdated on package managers
  - Software that comes with documentation that I need freequently but is not installed as manpage (e.g. youtube-dl)
  - all repos must be added as submodules
  - sync across machines and install
+ - This should only contain software that needs to be installed. Put other github projects that are of interest and worth tracking into gh-playground
+
+
+How can I reproduce a system configuration?
+
+Install packages by ...
+
+- pip
+- node (e.g. json)
+- gem (e.g. lolcommits)
+  etc.
