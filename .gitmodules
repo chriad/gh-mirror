@@ -1,6 +1,3 @@
-[submodule "stringlish"]
-	path = stringlish
-	url = ./stringlish
 [submodule "up"]
 	path = up
 	url = https://github.com/akavel/up.git
