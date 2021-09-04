@@ -1,0 +1,3 @@
+[submodule "stringlish"]
+	path = stringlish
+	url = ./stringlish
