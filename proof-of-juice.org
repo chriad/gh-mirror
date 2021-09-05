@@ -1,0 +1,12 @@
+Metonymoonomatopoetische (Metonymie + Onomatopoesie (use <-> juice)) Wortschoepfung
+
+juice -> Street Credibility and/or respect (https://www.urbandictionary.com/define.php?term=Juice)
+
+Through proof-of-use you earn juice.
+
+Should be literate in org-mode
+
+- mentions something new that you learned by reading this repos code
+- run the program. Define the input and show the output
+- critizise the repo in some way, make enhancements.
+- describe the repo

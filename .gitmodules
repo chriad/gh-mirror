@@ -7,6 +7,6 @@
 [submodule "CHEAT-SHEETS/bash-shortcuts-cheat-sheet"]
 	path = CHEAT-SHEETS/bash-shortcuts-cheat-sheet
 	url = https://github.com/fliptheweb/bash-shortcuts-cheat-sheet.git
-[submodule "stringlish"]
-	path = stringlish
-	url = git@github.com:aycock/stringlish.git
+[submodule "chezmoi"]
+	path = chezmoi
+	url = git@github.com:twpayne/chezmoi.git

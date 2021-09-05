@@ -15,7 +15,7 @@ Install packages by ...
 - gem (e.g. lolcommits)
   etc.
 
-  To checkout on workstation:
+  To checkout first time:
 
   #+begin_src bash
     git clone --recursive git@github.com:chriad/gh-mirror.git
@@ -28,3 +28,13 @@ Install packages by ...
   2. On folio:
      git pull
      git submodule update --init --recursive
+
+     reason := {documentation, outdated}
+     method := {snap, apt, manual, flatpak}
+     
+| repo    | method | reason        |
+|---------+--------+---------------|
+| chezmoi | snap   | documentation |
+| up      | manual |               |
+|         |        |               |
+     
