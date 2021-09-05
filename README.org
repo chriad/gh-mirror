@@ -30,11 +30,11 @@ Install packages by ...
      git submodule update --init --recursive
 
      reason := {documentation, outdated}
-     method := {snap, apt, manual, flatpak}
+     method := {snap, apt, manual, flatpak, anaconda, pip}
      
-| repo    | method | reason        |
-|---------+--------+---------------|
-| chezmoi | snap   | documentation |
-| up      | manual |               |
-|         |        |               |
+| repo    | method   | reason        |
+|---------+----------+---------------|
+| chezmoi | snap     | documentation |
+| up      | manual   |               |
+| ytcc    | anaconda | documentation |
      

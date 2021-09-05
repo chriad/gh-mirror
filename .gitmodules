@@ -13,3 +13,6 @@
 [submodule "gist-puller"]
 	path = gist-puller
 	url = https://gist.github.com/antonydevanchi/69977f626b99cff7048987a357296812
+[submodule "ytcc"]
+	path = ytcc
+	url = git@github.com:woefe/ytcc.git
