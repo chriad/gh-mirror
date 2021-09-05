@@ -16,3 +16,6 @@
 [submodule "ytcc"]
 	path = ytcc
 	url = git@github.com:woefe/ytcc.git
+[submodule "pythonrc"]
+	path = pythonrc
+	url = git@github.com:lonetwin/pythonrc.git
