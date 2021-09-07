@@ -19,3 +19,9 @@
 [submodule "pythonrc"]
 	path = pythonrc
 	url = git@github.com:lonetwin/pythonrc.git
+[submodule "user.js"]
+	path = user.js
+	url = https://github.com/arkenfox/user.js.git
+[submodule "youtube-dl"]
+	path = youtube-dl
+	url = https://github.com/ytdl-org/youtube-dl.git
