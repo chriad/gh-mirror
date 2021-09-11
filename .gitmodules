@@ -25,3 +25,6 @@
 [submodule "youtube-dl"]
 	path = youtube-dl
 	url = https://github.com/ytdl-org/youtube-dl.git
+[submodule "CHEAT-SHEETS/m4dc4p-haskell-cheatsheet"]
+	path = CHEAT-SHEETS/m4dc4p-haskell-cheatsheet
+	url = https://github.com/m4dc4p/cheatsheet.git

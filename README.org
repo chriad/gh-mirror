@@ -27,7 +27,7 @@ Install packages by ...
 
   2. On folio:
      git pull
-     git submodule update --init --recursive
+     git submodule update --init --recursive --jobs 5
 
      reason := {documentation, outdated}
      method := {snap, apt, manual, flatpak, anaconda, pip}
