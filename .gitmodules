@@ -28,3 +28,9 @@
 [submodule "CHEAT-SHEETS/m4dc4p-haskell-cheatsheet"]
 	path = CHEAT-SHEETS/m4dc4p-haskell-cheatsheet
 	url = https://github.com/m4dc4p/cheatsheet.git
+[submodule "CHEAT-SHEETS/scheme-cheat-sheet"]
+	path = CHEAT-SHEETS/scheme-cheat-sheet
+	url = https://github.com/smythp/scheme-cheat-sheet.git
+[submodule "diffoscope"]
+	path = diffoscope
+	url = https://salsa.debian.org/reproducible-builds/diffoscope.git
