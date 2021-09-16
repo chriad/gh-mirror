@@ -34,3 +34,6 @@
 [submodule "diffoscope"]
 	path = diffoscope
 	url = https://salsa.debian.org/reproducible-builds/diffoscope.git
+[submodule "sync-pass-with-git"]
+	path = sync-pass-with-git
+	url = https://gist.github.com/abtrout/d64fb11ad6f9f49fa325
