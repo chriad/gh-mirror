@@ -37,3 +37,6 @@
 [submodule "sync-pass-with-git"]
 	path = sync-pass-with-git
 	url = https://gist.github.com/abtrout/d64fb11ad6f9f49fa325
+[submodule "aptik"]
+	path = aptik
+	url = https://github.com/teejee2008/aptik.git
