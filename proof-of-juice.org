@@ -1,0 +1,2 @@
+* aptik
+This is very useful to inspect packages that have been manually installed by me. Also to transfer packages from different ubuntu systems.
