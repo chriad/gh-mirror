@@ -40,3 +40,6 @@
 [submodule "aptik"]
 	path = aptik
 	url = https://github.com/teejee2008/aptik.git
+[submodule "mkvtag"]
+	path = mkvtag
+	url = https://github.com/ylabonte/mkvtag.git
