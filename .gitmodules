@@ -43,3 +43,6 @@
 [submodule "mkvtag"]
 	path = mkvtag
 	url = https://github.com/ylabonte/mkvtag.git
+[submodule "jellyfin-mpv-shim"]
+	path = jellyfin-mpv-shim
+	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
