@@ -46,3 +46,9 @@
 [submodule "jellyfin-mpv-shim"]
 	path = jellyfin-mpv-shim
 	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
+[submodule "sway-launcher-desktop"]
+	path = sway-launcher-desktop
+	url = https://github.com/Biont/sway-launcher-desktop.git
+[submodule "pgtk-emacs-flatpak"]
+	path = pgtk-emacs-flatpak
+	url = https://github.com/fejfighter/pgtk-emacs-flatpak
