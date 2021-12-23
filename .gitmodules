@@ -88,3 +88,6 @@
 [submodule "BOOKS/Amateurfunkbehelf"]
 	path = BOOKS/Amateurfunkbehelf
 	url = https://github.com/hb4ff/Amateurfunkbehelf.git
+[submodule "BOOKS/book"]
+	path = BOOKS/book
+	url = https://github.com/rust-lang/book
