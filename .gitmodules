@@ -52,3 +52,39 @@
 [submodule "pgtk-emacs-flatpak"]
 	path = pgtk-emacs-flatpak
 	url = https://github.com/fejfighter/pgtk-emacs-flatpak
+[submodule "OBS/obs-xdg-portal"]
+	path = OBS/obs-xdg-portal
+	url = https://gitlab.gnome.org/feaneron/obs-xdg-portal.git
+[submodule "OBS/obs-websocket"]
+	path = OBS/obs-websocket
+	url = https://github.com/obsproject/obs-websocket.git
+[submodule "OBS/obs-cli"]
+	path = OBS/obs-cli
+	url = https://github.com/leafac/obs-cli.git
+[submodule "OBS/obs-wayland-shortcuts"]
+	path = OBS/obs-wayland-shortcuts
+	url = https://gitlab.com/AndrewShark/obs-wayland-shortcuts.git
+[submodule "ANDROID/remotekeyboard"]
+	path = ANDROID/remotekeyboard
+	url = https://github.com/onyxbits/remotekeyboard.git
+[submodule "MBAND/MobileBandSync"]
+	path = MBAND/MobileBandSync
+	url = https://github.com/OverallLine5/MobileBandSync.git
+[submodule "ANDROID/koreader"]
+	path = ANDROID/koreader
+	url = https://github.com/koreader/koreader.git
+[submodule "rebook"]
+	path = rebook
+	url = https://github.com/pwang7/rebook.git
+[submodule "ANDROID/geobookmark"]
+	path = ANDROID/geobookmark
+	url = https://github.com/onyxbits/geobookmark.git
+[submodule "BOOKS/markdown-mode-guide"]
+	path = BOOKS/markdown-mode-guide
+	url = https://github.com/jrblevin/markdown-mode-guide.git
+[submodule "BOOKS/Unix-Toolbox"]
+	path = BOOKS/Unix-Toolbox
+	url = https://github.com/hukl/Unix-Toolbox.git
+[submodule "BOOKS/Amateurfunkbehelf"]
+	path = BOOKS/Amateurfunkbehelf
+	url = https://github.com/hb4ff/Amateurfunkbehelf.git
