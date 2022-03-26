@@ -91,3 +91,39 @@
 [submodule "BOOKS/book"]
 	path = BOOKS/book
 	url = https://github.com/rust-lang/book
+[submodule "sort-PhotorecRecoveredFiles"]
+	path = sort-PhotorecRecoveredFiles
+	url = https://github.com/tfrdidi/sort-PhotorecRecoveredFiles.git
+[submodule "BOOKS/sobtec2"]
+	path = BOOKS/sobtec2
+	url = https://0xacab.org/sobteclib/sobtec2.git
+[submodule "a188b8969a539ce0f7a64deb56c00277"]
+	path = a188b8969a539ce0f7a64deb56c00277
+	url = https://gist.github.com/a188b8969a539ce0f7a64deb56c00277.git
+[submodule "get_iplayer"]
+	path = get_iplayer
+	url = https://github.com/get-iplayer/get_iplayer.git
+[submodule "mp4v2"]
+	path = mp4v2
+	url = https://github.com/TechSmith/mp4v2.git
+[submodule "EMACS/org-protocol-capture-html"]
+	path = EMACS/org-protocol-capture-html
+	url = https://github.com/alphapapa/org-protocol-capture-html.git
+[submodule "ANDROID/adb-enhanced"]
+	path = ANDROID/adb-enhanced
+	url = https://github.com/ashishb/adb-enhanced.git
+[submodule "SEC/Detect-It-Easy"]
+	path = SEC/Detect-It-Easy
+	url = https://github.com/horsicq/Detect-It-Easy.git
+[submodule "BOOKS/evil-epubs"]
+	path = BOOKS/evil-epubs
+	url = https://github.com/DistriNet/evil-epubs.git
+[submodule "pics"]
+	path = pics
+	url = https://github.com/corkami/pics.git
+[submodule "BOOKS/selinux-notebook"]
+	path = BOOKS/selinux-notebook
+	url = https://github.com/SELinuxProject/selinux-notebook.git
+[submodule "censorship/stegozoa-video"]
+	path = censorship/stegozoa-video
+	url = https://github.com/GabrielCFigueira/stegozoa-video.git
