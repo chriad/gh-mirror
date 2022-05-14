@@ -103,9 +103,6 @@
 [submodule "get_iplayer"]
 	path = get_iplayer
 	url = https://github.com/get-iplayer/get_iplayer.git
-[submodule "mp4v2"]
-	path = mp4v2
-	url = https://github.com/TechSmith/mp4v2.git
 [submodule "EMACS/org-protocol-capture-html"]
 	path = EMACS/org-protocol-capture-html
 	url = https://github.com/alphapapa/org-protocol-capture-html.git
@@ -127,3 +124,18 @@
 [submodule "censorship/stegozoa-video"]
 	path = censorship/stegozoa-video
 	url = https://github.com/GabrielCFigueira/stegozoa-video.git
+[submodule "cue-to-mp3"]
+	path = cue-to-mp3
+	url = https://gist.github.com/bancek/b37b780292540ed2d17d
+[submodule "data-source/www.submarinecablemap.com"]
+	path = data-source/www.submarinecablemap.com
+	url = https://github.com/telegeography/www.submarinecablemap.com.git
+[submodule "BOOKS/ethics-in-an-app"]
+	path = BOOKS/ethics-in-an-app
+	url = https://gitlab.com/ipo23/ethics-in-an-app.git
+[submodule "PDF/linkrot"]
+	path = PDF/linkrot
+	url = https://github.com/marshalmiller/linkrot.git
+[submodule "dpt-rp1-py"]
+	path = dpt-rp1-py
+	url = https://github.com/janten/dpt-rp1-py.git
