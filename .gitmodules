@@ -220,3 +220,9 @@
 [submodule "BOOKS/concise-cheat-sheets"]
 	path = BOOKS/concise-cheat-sheets
 	url = https://github.com/rudymatela/concise-cheat-sheets
+[submodule "tiktok_source"]
+	path = tiktok_source
+	url = https://github.com/huaji233333/tiktok_source.git
+[submodule "AWESOME/awesome-scheme"]
+	path = AWESOME/awesome-scheme
+	url = https://github.com/schemedoc/awesome-scheme.git
