@@ -190,9 +190,6 @@
 [submodule "BOOKS/function-composition-cheatsheet"]
 	path = BOOKS/function-composition-cheatsheet
 	url = https://github.com/fp-works/function-composition-cheatsheet.git
-[submodule "BOOKS/concise-cheat-sheets"]
-	path = BOOKS/concise-cheat-sheets
-	url = https://github.com/rudymatela/concise-cheat-sheets
 [submodule "WEB/worg"]
 	path = WEB/worg
 	url = https://git.sr.ht/~bzg/worg
@@ -217,3 +214,9 @@
 [submodule "SOURCE/The-Statistics-and-Calculus-with-Python-Workshop"]
 	path = SOURCE/The-Statistics-and-Calculus-with-Python-Workshop
 	url = https://github.com/PacktWorkshops/The-Statistics-and-Calculus-with-Python-Workshop.git
+[submodule "BOOKS/ElispCheatSheet"]
+	path = BOOKS/ElispCheatSheet
+	url = https://github.com/alhassy/ElispCheatSheet.git
+[submodule "BOOKS/concise-cheat-sheets"]
+	path = BOOKS/concise-cheat-sheets
+	url = https://github.com/rudymatela/concise-cheat-sheets

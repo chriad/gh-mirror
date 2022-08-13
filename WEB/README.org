@@ -1,0 +1,1 @@
+Git repos publishable as HTML webpages.
