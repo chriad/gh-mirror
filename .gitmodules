@@ -139,3 +139,81 @@
 [submodule "dpt-rp1-py"]
 	path = dpt-rp1-py
 	url = https://github.com/janten/dpt-rp1-py.git
+[submodule "mp4v2"]
+	path = mp4v2
+	url = https://github.com/enzo1982/mp4v2.git
+[submodule "blanket"]
+	path = blanket
+	url = https://github.com/rafaelmardojai/blanket/
+[submodule "PDF/pdfxplr"]
+	path = PDF/pdfxplr
+	url = https://github.com/sowdust/pdfxplr.git
+[submodule "PDF/peepdf"]
+	path = PDF/peepdf
+	url = https://github.com/jesparza/peepdf.git
+[submodule "PDF/ocrodjvu"]
+	path = PDF/ocrodjvu
+	url = https://github.com/jwilk/ocrodjvu.git
+[submodule "BOOKS/fullstackwiki"]
+	path = BOOKS/fullstackwiki
+	url = https://github.com/utatatata/fullstackwiki
+[submodule "BOOKS/fullstacklisp"]
+	path = BOOKS/fullstacklisp
+	url = git@github.com:daveloyall/fullstacklisp.git
+[submodule "BOOKS/clqr"]
+	path = BOOKS/clqr
+	url = https://github.com/trebb/clqr.git
+[submodule "BOOKS/milewski-ctfp-pdf"]
+	path = BOOKS/milewski-ctfp-pdf
+	url = https://github.com/hmemcpy/milewski-ctfp-pdf.git
+[submodule "BOOKS/sicp-pdf"]
+	path = BOOKS/sicp-pdf
+	url = https://github.com/sarabander/sicp-pdf.git
+[submodule "BOOKS/llthw"]
+	path = BOOKS/llthw
+	url = https://github.com/LispTO/llthw.git
+[submodule "BOOKS/tyscheme"]
+	path = BOOKS/tyscheme
+	url = https://github.com/ds26gte/tyscheme.git
+[submodule "tex2page"]
+	path = tex2page
+	url = https://github.com/ds26gte/tex2page
+[submodule "BOOKS/CL-reference"]
+	path = BOOKS/CL-reference
+	url = https://github.com/robert-strandh/CL-reference.git
+[submodule "dpt-tools"]
+	path = dpt-tools
+	url = https://github.com/HappyZ/dpt-tools.git
+[submodule "polar-bookshelf"]
+	path = polar-bookshelf
+	url = https://github.com/burtonator/polar-bookshelf.git
+[submodule "BOOKS/function-composition-cheatsheet"]
+	path = BOOKS/function-composition-cheatsheet
+	url = https://github.com/fp-works/function-composition-cheatsheet.git
+[submodule "BOOKS/concise-cheat-sheets"]
+	path = BOOKS/concise-cheat-sheets
+	url = https://github.com/rudymatela/concise-cheat-sheets
+[submodule "WEB/worg"]
+	path = WEB/worg
+	url = https://git.sr.ht/~bzg/worg
+[submodule "SOURCE/9781565922617"]
+	path = SOURCE/9781565922617
+	url = https://resources.oreilly.com/examples/9781565922617.git
+[submodule "SOURCE/9780596006488"]
+	path = SOURCE/9780596006488
+	url = https://resources.oreilly.com/examples/9780596006488.git
+[submodule "BOOKS/cltl2-doc"]
+	path = BOOKS/cltl2-doc
+	url = https://github.com/filonenko-mikhail/cltl2-doc.git
+[submodule "SOURCE/Deep-Learning-A-Visual-Approach"]
+	path = SOURCE/Deep-Learning-A-Visual-Approach
+	url = https://github.com/blueberrymusic/Deep-Learning-A-Visual-Approach.git
+[submodule "SOURCE/NumericalMethodsPhysicsWithPython"]
+	path = SOURCE/NumericalMethodsPhysicsWithPython
+	url = https://github.com/CambridgeUniversityPress/NumericalMethodsPhysicsWithPython.git
+[submodule "SOURCE/real-world-machine-learning"]
+	path = SOURCE/real-world-machine-learning
+	url = https://github.com/brinkar/real-world-machine-learning.git
+[submodule "SOURCE/The-Statistics-and-Calculus-with-Python-Workshop"]
+	path = SOURCE/The-Statistics-and-Calculus-with-Python-Workshop
+	url = https://github.com/PacktWorkshops/The-Statistics-and-Calculus-with-Python-Workshop.git
