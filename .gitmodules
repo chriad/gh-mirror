@@ -149,7 +149,7 @@
 	path = PDF/pdfxplr
 	url = https://github.com/sowdust/pdfxplr.git
 [submodule "PDF/peepdf"]
-	path = PDF/peepdf
+	path = PDF/pee-pdf/peepdf
 	url = https://github.com/jesparza/peepdf.git
 [submodule "PDF/ocrodjvu"]
 	path = PDF/ocrodjvu
@@ -235,3 +235,6 @@
 [submodule "EMACS/org-bib-template"]
 	path = EMACS/org-bib-template
 	url = https://github.com/tsdye/org-bib-template.git
+[submodule "PDF/pee-pdf/peepdf.wiki"]
+	path = PDF/pee-pdf/peepdf.wiki
+	url = https://github.com/jesparza/peepdf.wiki.git
