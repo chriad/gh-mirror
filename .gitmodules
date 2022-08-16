@@ -226,3 +226,12 @@
 [submodule "AWESOME/awesome-scheme"]
 	path = AWESOME/awesome-scheme
 	url = https://github.com/schemedoc/awesome-scheme.git
+[submodule "EMACS/taskwarrior.el"]
+	path = EMACS/taskwarrior.el
+	url = https://github.com/winpat/taskwarrior.el.git
+[submodule "PDF/cpdf-binaries"]
+	path = PDF/cpdf-binaries
+	url = https://github.com/coherentgraphics/cpdf-binaries.git
+[submodule "EMACS/org-bib-template"]
+	path = EMACS/org-bib-template
+	url = https://github.com/tsdye/org-bib-template.git
