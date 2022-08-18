@@ -1,0 +1,549 @@
+#+Title: Basic questions and answers for GNU Guile (from the perspective of a Pythonista)
+#+options: toc:nil
+#+BEGIN_abstract
+Guile is a Scheme interpreter which is the canonical extension
+mechanism for GNU programs. It aims at providing good access to
+C-libraries and (what’s the most interesting part for me) it can use
+real OS-level threads (no global interpreter lock).
+
+Here I want to share some of the answers I found when looking into GNU
+Guile to expand my programming horizon. 
+
+The source of this document is available from [[http://bitbucket.org/ArneBab/py2guile][py2guile]].
+#+END_abstract
+
+#+TOC: headlines 2
+
+* Motivation
+
+When reading [[http://chimera.labs.oreilly.com/books/1234000001813/ch02.html#the_white_belt][The White Belt]] in the book Apprenticeship Patterns I felt
+a pang of recognition.
+
+#+BEGIN_EXAMPLE
+You are struggling to learn new things and it seems somehow harder
+than it was before to acquire new skills. The pace of your
+self-education seems to be slowing down despite your best efforts. You
+fear that your personal development may have stalled.
+#+END_EXAMPLE
+
+I have grown so familiar with Python that the challenges I face at my
+PhD no longer require me to dig deeper with it. Actually I mostly just
+recreate solutions I already used for something else. So I decided to
+take a leap and learn something completely different. My basic options
+were Scheme and Fortran: Scheme because it offers new options in
+structuring programs, Fortran because it would be useful for my job. I
+chose Scheme, because it provides its own sense of elegance while
+Fortran would be a more concrete skill but it would not challenge my
+current notions of programming.[fn:1]
+
+Using the Scheme implementation from GNU was a natural choice, then.
+
+(though I was not happy with the many parens. See 
+[[http://draketo.de/light/english/wisp-lisp-indentation-preprocessor][wisp: Whitespace to Lisp]] for my take on that)
+
+* Solutions
+
+** Creating Games
+
+- [[https://github.com/davexunit/guile-2d][guile-2d]]
+
+** Range of numbers: iota
+
+#+BEGIN_SRC scheme
+  (iota 6) ; 0 1 2 3 4 5
+  (use-modules (srfi srfi-1))
+  (iota 6 1 0.1) ; 1.0 1.1 1.2 1.3 1.4 1.5
+#+END_SRC
+
+** Performance test
+
+To get the runtime of some code, just use ,time on the REPL (the guile shell)
+
+To really profile the code, you can use ,profile on the REPL.
+
+If it says “no samples recorded”, you may need to run the code multiple times in a loop to give the profiler enough data to provide a solid report.
+
+As example, type the following into the REPL:
+
+#+BEGIN_SRC scheme
+  (define (mycode i) (display i)(newline))
+  ,profile (mycode 1)
+  ,profile (let loop ((i 10000)) (cond ((zero? i) i) (else (mycode i) (loop (1- i)))))
+#+END_SRC
+
+** Testing Framework
+
+*** Generic testing framework
+
+http://srfi.schemers.org/srfi-64/srfi-64.html
+
+*** Running tests from docstrings
+
+Nothing yet for running tests directly from docstrings. But you can extract docstrings:
+
+#+BEGIN_SRC scheme
+  (define (foo) 
+    "bar" 
+    "baz")
+  (procedure-documentation foo) ; ⇒ "bar"
+#+END_SRC 
+
+This only works, if the docstring is NOT the only form in the function. You have to have at least one other statement, otherwise you just get #f. If the docstring is the only data, it is by definition the return value of the function.
+
+#+BEGIN_SRC scheme
+  (define (foo)
+    "bar")
+  (procedure-documentation foo) ; #f
+  
+#+END_SRC
+
+You can find a discussion about this [[http://lists.gnu.org/archive/html/guile-devel/2014-02/msg00039.html][on the guile-devel mailinglist]].
+
+To discover all bindings which could have docstrings, you can use something like the code in this example (from a hint on IRC):
+
+#+BEGIN_SRC scheme
+  (module-map (lambda (sym var) sym) (resolve-interface '(ice-9 vlist)))
+#+END_SRC
+
+** Help at the REPL (guile console/interpreter)
+
+To get information about a given function, you can use the ,d meta-command. Example:
+
+#+BEGIN_SRC scheme
+,d append
+,describe append
+#+END_SRC
+
+Alternatively you can use the help function from the texinfo reflection module:
+
+#+BEGIN_SRC scheme
+(use-modules (texinfo reflection))
+(help append)
+#+END_SRC
+
+To enable this systemwide, just add the module import to your ~/.guile
+
+#+BEGIN_SRC scheme
+(use-modules (texinfo reflection))
+#+END_SRC
+
+To get all local variables, you can use ,bindings (,b). Example:
+
+#+BEGIN_SRC scheme
+(define a 1)
+,b
+,bindings
+#+END_SRC
+
+this returns
+
+#+BEGIN_EXAMPLE
+scheme@(guile-user)> ,b
+a                       #<variable e70f60 value: 1>
+%module-public-interface #<variable 895a60 value: #<interface (guile-user) 882bd0>>
+#+END_EXAMPLE
+
+To get a list of all variables from the module guile, use
+
+#+BEGIN_SRC scheme
+,in (guile) ,b
+#+END_SRC
+
+To get a list of all imported modules, use ,import or ,use without arguments.
+
+#+BEGIN_SRC scheme
+,import
+,use
+#+END_SRC
+
+You can find more of these REPL-commands via ,help all:
+
+#+BEGIN_SRC scheme
+,help all
+#+END_SRC
+
+The easiest way, however, is activating readline and just hitting tab
+twice:
+
+#+BEGIN_SRC sh
+echo "(use-modules (ice-9 readline))(activate-readline)" >> ~/.guile
+#+END_SRC    
+
+Essentially this:
+
+#+BEGIN_SRC scheme
+(module-map (λ (sym var) sym) (resolve-interface '(guile)))
+#+END_SRC
+
+and
+
+#+BEGIN_SRC scheme
+,use ; returns (guile-user)
+,in (guile-user) ,use ; returns module listing
+,in (guile) ,b ; returns the bindings
+,in ...
+#+END_SRC
+
+
+Essentially this:
+
+#+BEGIN_SRC scheme
+(map (λ (x) (cons (module-name x) (module-map (λ (sym var) sym) (resolve-interface (module-name x))))) (module-uses (resolve-module '(guile-user))))
+#+END_SRC
+
+To get a dir as in Python, you can use this:
+
+#+BEGIN_SRC scheme
+  (import (ice-9 optargs))
+  (import (oop goops))
+  (use-modules (texinfo reflection))
+
+  ; define basic dir
+  (define* (dir #:key (all? #f))
+    (if all?
+        (map (λ (x) (cons (module-name x)
+                          (module-map (λ (sym var) sym) (resolve-interface (module-name x)))))
+             (module-uses (current-module)))
+        (module-map (λ (sym var) sym) (current-module))))
+  ; add support for giving the module as argument
+  (define-generic dir)
+  (define-method (dir (all? <boolean>)) (dir #:all? all?))
+  (define-method (dir (m <list>)) (module-map (λ (sym var) sym) (resolve-interface m)))
+  ; add support for using modules directly (interfaces are also modules, so this catches both)
+  (define-method (dir (m <module>)) (module-map (λ (sym var) sym) m))
+#+END_SRC
+
+You can use it like this:
+
+#+BEGIN_SRC scheme
+(dir) ; all local bindings, excluding imported modules
+(dir #t) ; all available bindings, including imported modules
+(dir #:all? #t) ; same as above
+(dir '(ice-9 optargs)) ; all exported bindings from the (ice-9 optargs) module
+; => (let-optional* define* let-keywords let-keywords* define*-public defmacro* defmacro*-public let-optional lambda*)
+(dir (resolve-module '(ice-9 optargs)) ; all bindings in the module
+; => (let-optional* parse-lambda-case %module-public-interface let-keywords let-keywords* define*-public defmacro* defmacro*-public *uninitialized* let-optional vars&inits)
+#+END_SRC
+
+** Publish a project cross-platform easily
+
+No simple solution yet.
+
+** Where’s the standard library? What does ice-9 mean?
+
+Different from Python, GNU Guile clearly separates its own standard library from other sources of packages. To get Guile-specific functionality, check the modules under ice-9. According to the [[http://www.gnu.org/software/guile/docs/docs-2.0/guile-ref/Status.html#Status][Guile Status]], the name ice-9 is a play on the fictional alternative state of water described in Kurt Vonnegut's novel Cat's Cradle from 1963. That water crystallizes at room-temperature and turns all water it touches into crystals. 
+
+#+BEGIN_QUOTE
+With time, perhaps this exposure can reverse itself, whereby programs can run under Guile instead of vice versa, eventually resulting in the Emacsification of the entire GNU system. Indeed, this is the reason for the naming of the many Guile modules that live in the ice-9 namespace, a nod to the fictional substance in Kurt Vonnegut's novel, Cat's Cradle, capable of acting as a seed crystal to crystallize the mass of software.
+#+END_QUOTE
+
+An ice-crystal to create more crystals in an environment which would normally melt the ice looks like a fitting name for the core of the GNU Ubiquious Intelligent Language for Extensions, intended to give free software an edge in a proprietary world.
+
+** Optionals and Keyword-Arguments
+
+Keyword-Arguments are somewhat harder to use in Guile Scheme than in Python. Here’s an example in Python:
+
+#+BEGIN_SRC python
+def hello(who="World"):
+    print "Hello", who + "!"
+hello() # => Hello World!
+hello("Friend") # => Hello Friend!
+hello(who="Friend") # => Hello Friend!
+#+END_SRC
+
+The same in Guile would look like this:
+
+#+BEGIN_SRC wisp
+use-modules : ice-9 format
+define* : hello #:optional (who "World")
+          format #t "Hello ~A!\n" who
+hello ; => Hello World!
+hello "Friend" ; => Hello Friend!
+define* : hello #:key (who "World")
+          format #t "Hello ~A!\n" who
+hello #:who "Friend" ; => Hello Friend!
+#+END_SRC
+
+I actually need two different definitons to support optional and keyword arguments.
+
+Not having keyword arguments double as optionals looks strange from the perspective of a Pythonista, but I think using this approach avoids errors due to accidentally passing a keyword-argument when you passed one more argument to a function - as it sometimes happened to me when working with methods in Python. For some notes on keyword-arguments in Guile, have a look at [[http://wingolog.org/archives/2009/11/08/optionals-keywords-oh-my][optionals, keywords, oh my!]] from Andy Wingo.
+
+Python just treats keyword arguments and optionals the same and even allows reusing mandatory arguments as keyword arguments, which makes it really nice to use functions, for which the developer omitted keyword-arguments, consistently with functions using keyword-arguments. But on the other hand, keyword-arguments increase the coupling between functions: I cannot rename function arguments without changing every function-call which used keyword-arguments for calling. Due to this, I am not certain whether Python actually strikes the right balance here or whether Guile Scheme found the better solution.
+
+If you want to provide keyword-arguments without default-value (like switches), then code in Guile Scheme is the one which looks easier:
+
+#+BEGIN_SRC python
+  def keywords_dict(**rest):
+      print rest
+  def keywords_none(me=None, you=None):
+      if me:
+          print "me"
+      if you:
+          print "you"
+#+END_SRC
+
+In Guile Scheme this looks like the following:
+
+#+BEGIN_SRC wisp
+  define* : keywords_rest . rest
+            display rest
+  define* : keywords #:key me you
+            when me
+                 display "me\n"
+            when you
+                 display "you\n"
+#+END_SRC
+
+Note, though, that rest in Python is a dictionary, while rest in Guile Scheme is a list which you still need to parse yourself. So with Guile Scheme I would always provide an explicit list of keyword-arguments. And it is not explicit from the definition that the keywords will be =#f= in Guile Scheme when I do not pass them.
+
+Personally I love keyword arguments, because they make it possible to understand how a function will see an argument from the call to the function itself. From my current perspective, Guile falls a bit short of Python here, though it is still pretty solid. And it actually provides some features beyond those in Python: It allows keyword-arguments to refer back to optional arguments or earlier keyword-arguments:
+
+#+BEGIN_SRC wisp
+define*
+    hello
+      . #:optional (me #f) 
+      . #:key (who "World") (end (if me "???" "!"))
+    format #t "Hello ~A~A\n" who end
+hello ; => Hello World!
+hello #:who "Friend" ; => Hello Friend!
+hello #t ; => Hello World???
+hello #t #:who "Friend" ; => Hello Friend???
+hello #:who "Friend" #:end "!!!" ; => Hello Friend!!!
+#+END_SRC
+
+You can define the default value of an argument based on a previously defined argument. And I remember quite a few instances where I hacked together addon-code which roughly did the same in Python.
+
+
+* Questions and Answers
+
+** How do I enable readline support?
+
+Put the following into ~/.guile
+
+#+BEGIN_SRC sheme
+(use-modules (ice-9 readline))
+(activate-readline)
+#+END_SRC
+
+Short form:
+
+#+BEGIN_SRC sh
+echo "(use-modules (ice-9 readline))(activate-readline)" >> ~/.guile
+#+END_SRC
+
+** How to get a list of all currently available functions and macros in the interactive shell?
+
+just hit TAB twice in an empty line. Alternative: Enter ( and then hit TAB twice.
+
+Requires active readline.
+
+** How to import just one symbol from a module?
+
+(define local-name (@ (category module) symbol))
+** Why not add strings with +: prefix-notation is different!
+
+Regular scheme does not allow adding strings with +, but from my
+experience with python that is a very intuitive way of working with
+strings - and I think it contributes to making string-manipulation
+easier with python.
+
+But guile offers a way to do so by using GOOPS, the Guile Object Oriented Programming System: 
+
+#+BEGIN_SRC scheme
+  (use-modules (oop goops))
+  (define-method (+ (x <string>) (y <string>) . e) 
+    (if (equal? '() e) 
+        (string-append x y) 
+        ; else
+        (apply + (append (list (string-append x y)) e)) ))
+  ; and the error case
+  (define-method (+ (x <string>) (y <number>)) 
+    (throw 'mixed-strings-and-numbers-exception 
+           (format "+ cannot be used with mixed type input: x ~a y ~a" x y)))
+#+END_SRC
+
+And this gives you the full python-behaviour.
+
+But as /Mark Weaver/ states, this is actually a problem for systems using prefix notation, because different from python scheme allows for an empty call to +:
+
+#+BEGIN_SRC scheme
+  (+) ; this returns 0
+  (apply + '()) ; also returns 0, but here you might not know whether
+                ; the list is empty, because you might get it from
+                ; somewhere else!
+#+END_SRC
+
+And GOOPS changes + globally, so that every bit of code I use would suddenly see a changed (+), which might break existing error-handling:
+
+#+BEGIN_SRC scheme
+  (let ((foo 1)(bar "2"))
+    (catch 'wrong-type-arg 
+      (lambda () (+ foo bar)) ; checked
+      (lambda (key . args) ; handler for wrong types
+        (format #f "foo or bar is not a number!"))))
+#+END_SRC
+
+And this actually applies to all code running in the same process:
+
+#+BEGIN_EXAMPLE
+<Arne```> mark_weaver: I have a question to be really, really sure (as in “I’m
+          certain that I can misunderstand anything if it even has a minuscle
+          amount of ambiguity”): When I add a method with GOOPS, does that
+          affect libraries I use? When I release a module which adds a method
+          with GOOPS, and someone uses that module, does that affect other
+          modules he or she uses?  [09:41]
+<mark_weaver> when you add a method to any generic function (such as +) with
+              GOOPS, you are effectively mutating that generic function.
+              Anything thing else in the system that uses that generic
+              function is affected, yes.  [09:43]
+<mark_weaver> in this case, if you add string concatenation to +, that will
+              affect + for all users of + throughout the guile process.
+#+END_EXAMPLE
+
+And this is due to the added flexibility we get from prefix-notation:
+
+#+BEGIN_EXAMPLE
+<mark_weaver> Using + for that is likely to lead to bugs, where you do
+              something like (apply + <list>) which works just fine as long as
+              <list> has at least one element, otherwise it breaks.  [05:16]
+<mark_weaver> note that this issue doesn't arise with infix languages, because
+              theres no way to use infix '+' with zero arguments.  [05:19]
+#+END_EXAMPLE
+
+Later, Mark noted two things which are better ideas, I think:
+
+#+BEGIN_EXAMPLE
+<mark_weaver> now, list concatenation (append), string concatenation
+              (string-append), and vector concatenation *are* conceptually the
+              same thing.  combining all of those things into a ++ operator
+              would be much more defensible.  [00:39]
+<mark_weaver> although you'd still have a problem of what to return when
+              passed zero arguments.  [00:40]
+<mark_weaver> that reminds me of another place where there'd be a conflict
+              with combining these two concepts into one: one might reasonably
+              decide to extend numerical addition to vectors and lists, by
+              adding successive elements together, e.g. (lambda (x y) (map + x
+              y))  [00:42]
+#+END_EXAMPLE
+
+So, why not just adjust /append/ to also append strings, and /+/ to apply to lists of lists and do vector addition? 
+
+++ looks pretty dangerous for me: Intuitively I would have thought that it does vector addition… 
+
+#+BEGIN_EXAMPLE
+<mark_weaver> Arne`: fair enough.  If you keep those two concepts separate, I
+              have no further complaints.  I'll just note that (append)
+              returns '().
+#+END_EXAMPLE
+
+*** Module scoped generics
+
+Andy Wingo noted another option of overloading + which does not have global implications:
+
+#+BEGIN_EXAMPLE
+<wingo> you can make new, scoped generics
+<wingo> module-scoped anyway  [10:17]
+<wingo> make a new binding (perhaps by making a pure module, with the binding
+        for + renamed to guile:+), and call guile:+ as the + method with
+        unspecialized args  [10:22]
+<Arne```> wingo: I don’t think I really understand yet… So I would rename + to
+          guile:+ and then define a private function named +, which I do not
+          export?  [10:26]
+<wingo> you would export +
+<wingo> or alternately you define "add", and export it as "+"
+<wingo> probably easier that way  [10:27]
+<Arne```> but since it is not the same object as the standard +, goops would
+          not affect libraries which do not use the module?
+<wingo> correct
+<Arne```> Nice!
+<nalaginrut> ah nice  [10:29]
+<Arne```> Now we’re getting to the kind of magic I like: The explicit kind :)
+#+END_EXAMPLE
+
+This looks pretty safe, so I might switch to that instead of the hack I have above.
+
+** Specialized functions (object orientation)
+
+Why does this work?
+
+#+BEGIN_SRC scheme
+(use-modules (oop goops)) (define-method (+ (x <string>) (y <string>)) (string-append x y))
+#+END_SRC
+
+While this does not?
+
+#+BEGIN_SRC scheme
+(use-modules (oop goops)) (define (add x y) (+ x y)) (define-method (add (x <string>) (y <string>)) (string-append x y))
+#+END_SRC
+
+Answer: + is a core function, which is already defined in a way which allows specializing (generic function). But if you use =(define)=, you create a standard scheme function without =goops= support. You need to use =(define-method)= from the start:
+
+#+BEGIN_SRC scheme
+(use-modules (oop goops)) (define-method (add x y) (+ x y)) (define-method (add (x <string>) (y <string>)) (string-append x y))
+#+END_SRC
+
+** How do I print stuff to the terminal?
+
+There are =display= for nice-looking output, =write= for exact output and =format= for building output messages.
+
+*** display
+
+=display= shows strings with linebreaks, but without a linebreak at the end:
+
+#+BEGIN_SRC wisp
+display "foo\nfoo\n"
+; gives
+; foo
+; foo
+#+END_SRC
+
+*** write
+
+=write= shows data-structures in a way which can be put into the guile-interpreter (the REPL) within (quote) and give the same datastructure again. Also without linebreak.
+
+#+BEGIN_SRC wisp
+write "foo
+foo
+"
+; gives
+; "foo\nfoo\n"
+write '(foo (bar))
+; gives
+; (foo (bar))
+#+END_SRC
+
+*** format
+
+Format allows using strings with replacements. It either prints to stdout or returns a string.
+
+#+BEGIN_SRC wisp
+format #t "foo ~A\n" 'bar
+; writes
+; foo bar
+; with a linebreak at the end
+format #f "foo ~A\n" 'bar
+; returns the string "foo bar\n"
+format #f "foo ~A\n" '(foo bar "moo")
+; returns the string "foo (foo bar moo)\n"
+format #t "foo ~A\n" '(foo bar "moo")
+; writes
+; foo (foo bar moo)
+; to stdout with a linebreak at the end.
+#+END_SRC
+
+* Glossary
+
+Terms used by Schemers.
+
+- Thunk: One block of code. Enclosed by parens.
+- Procedure: Function.
+- Body: All the forms in a procedure.
+- Form: Something which appears in a body: A definition or an expression.
+- Definition: A form which starts with =(define=.
+- Expression: Any form which can appear in the function body which is not a definition. See [[http://www.cs.indiana.edu/scheme-repository/R4RS/r4rs_6.html][R4RS]] for the clear definition.
+
+* Footnotes
+
+[fn:1] Actually I started with Fortran for practical reasons, but found myself drawn back to scheme all the time. So I decided to go with my natural drive and dive into scheme.
+
+

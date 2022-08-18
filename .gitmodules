@@ -104,7 +104,7 @@
 	path = get_iplayer
 	url = https://github.com/get-iplayer/get_iplayer.git
 [submodule "EMACS/org-protocol-capture-html"]
-	path = EMACS/org-protocol-capture-html
+	path = EMACS/org/org-protocol-capture-html
 	url = https://github.com/alphapapa/org-protocol-capture-html.git
 [submodule "ANDROID/adb-enhanced"]
 	path = ANDROID/adb-enhanced
@@ -233,8 +233,23 @@
 	path = PDF/cpdf-binaries
 	url = https://github.com/coherentgraphics/cpdf-binaries.git
 [submodule "EMACS/org-bib-template"]
-	path = EMACS/org-bib-template
+	path = EMACS/org/org-bib-template
 	url = https://github.com/tsdye/org-bib-template.git
 [submodule "PDF/pee-pdf/peepdf.wiki"]
 	path = PDF/pee-pdf/peepdf.wiki
 	url = https://github.com/jesparza/peepdf.wiki.git
+[submodule "WEB/common-lisp-users.jp"]
+	path = WEB/common-lisp-users.jp
+	url = https://github.com/g000001/common-lisp-users.jp.git
+[submodule "SOURCE/eopl3"]
+	path = SOURCE/eopl3
+	url = https://github.com/mwand/eopl3.git
+[submodule "BOOKS/lisp-notes"]
+	path = BOOKS/lisp-notes
+	url = https://github.com/ashok-khanna/lisp-notes.git
+[submodule "BOOKS/rprimus--graham-ansi-common-lisp"]
+	path = BOOKS/rprimus--graham-ansi-common-lisp
+	url = https://github.com/rprimus/github-move.git
+[submodule "SOURCE/sed-awk"]
+	path = SOURCE/sed-awk
+	url = https://resources.oreilly.com/examples/9781565922259.git

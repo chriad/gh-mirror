@@ -1,0 +1,81 @@
+\documentclass[a5paper]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage{csquotes}
+\usepackage[normalem]{ulem}
+% \usepackage{amsmat}
+\usepackage{textcomp}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{color}
+\usepackage{minted}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+colorlinks,
+linkcolor={red!50!black},
+citecolor={blue!30!black},
+urlcolor={blue!50!black}
+}
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage{wallpaper}
+\makeatletter
+\renewenvironment{minted@colorbg}[1]{
+\setlength{\fboxsep}{\z@}
+\def\minted@bgcol{#1}
+\noindent
+\begin{lrbox}{\minted@bgbox}
+\begin{minipage}{\linewidth}}
+{\end{minipage}
+\end{lrbox}%
+\colorbox{\minted@bgcol}{\usebox{\minted@bgbox}}}
+\makeatother
+\setlength{\droptitle}{-100pt}
+\raggedbottom
+\newcommand{\subtitle}{a natural progression}
+\renewcommand{\maketitlehooka}{\begin{picture}(0,0)
+   \put(-20,-278){\turnbox{33}{\HUGE \textcolor{white}{\thetitle}}}
+\end{picture}\color{white}}
+\renewcommand{\maketitlehookb}{\color{black}\begin{picture}(0,0)
+   \put(129,-154){\turnbox{33}{\Huge \textcolor{white}{\subtitle}}}
+\end{picture}}
+\renewcommand{\maketitlehookd}{\ThisLLCornerWallPaper{1}{green_tree_python-flickr-author-msvg-michael_gil-license-cc_by-4533044418_707b0029b2_o-and-guile-gnu-goatee-by-martin-grabmueller-license-gplv3-or-later-unified-resynth.jpg}}
+
+\renewenvironment{abstract}{%
+\hfill\begin{textblock*}{100mm}(12mm,12mm)
+\noindent%\rule{\textwidth}{1pt}
+\noindent \huge \begin{displayquote}}
+{\end{displayquote}\par\noindent%\rule{\textwidth}{1pt}
+\end{textblock*}}
+
+\author{Arne Babenhauserheide}
+\date{\today}
+\title{Going from Python to Guile Scheme}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 24.4.1 (Org mode 8.2.6)}}
+\begin{document}
+
+
+\maketitle
+\definecolor{bg}{rgb}{0.98,0.98,0.98}
+\begin{abstract}
+After 6 years of intense Python-Programming, I am starting into Guile Scheme. And against my expectations, I feel at home.
+\end{abstract}
+
+\newpage
+
+
+\end{document}

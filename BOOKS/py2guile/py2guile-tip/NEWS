@@ -1,0 +1,59 @@
+py2guile 0.9.0
+- final round of polishing
+- all quotes in the same style
+
+py2guile 0.8.7
+- polish
+
+py2guile 0.8.6
+- polish
+
+py2guile 0.8.5
+- adjusted dedication and order of authors
+
+py2guile 0.8.4
+- my story as part of Python.
+- fix make distcheck
+- add impressum and link for a digital companion zip
+- add book scan as largefile.
+- add thumbnail.
+
+py2guile 0.8.3
+- link source
+- consistency -> uniformity
+- fairer comparison to Python: Why I still recommend Python at the institute.
+- note that the generator / yield examples are synthetic
+- some more recommended reading.
+- pdf: more microtype, lmodern
+- polish text
+
+py2guile 0.8.2
+- Addedd GPL
+- Lots of small fixes and polish
+
+py2guile 0.8.1
+- fix page numbering for printing on epubli
+- polish
+
+py2guile 0.8
+- nicer title page
+- complexity of Python decorators
+- corrections from the first test print
+- properties
+
+py2guile 0.7.1
+- conclusions with chapter title
+
+py2guile 0.7
+- Added a minimal back cover
+- declare frontmatter, mainmatter and appendix
+- cleaner dedication
+
+py2guile 0.6
+- Printable PDF (test at epubli should be in the snailmail soon)
+- More fun to read
+- Add solution map: mapping python solution to Guile solutions
+- Proof-read (by myself - need beta-readers)
+
+py2guile 0.0
+- Initial standalone version

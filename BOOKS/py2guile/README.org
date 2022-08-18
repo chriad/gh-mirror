@@ -1,0 +1,2 @@
+manual download
+git clone https://hg.sr.ht/~arnebab/py2guile # does not work

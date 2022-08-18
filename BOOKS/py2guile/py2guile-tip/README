@@ -1,0 +1,35 @@
+py2guile: Going from Python to Guile Scheme (book)
+
+Get the book from http://draketo.de/py2guile
+
+Content: py2guile.org
+
+Requirements for building the book:
+
+- emacs: http://gnu.org/s/emacs
+- orgmode 0.8 or later: http://orgmode.org/
+- pdflatex and bibtex from a distribution like texlive:
+  https://www.tug.org/texlive/
+- calibre ebook conversion tools: http://calibre-ebook.com/
+- a shell like bash: http://gnu.org/s/bash
+- tar, for example GNU tar: http://gnu.org/s/tar
+
+To create the book from a release tarball:
+
+    tar xf py2guile-*.tar.gz ; cd py2guile-*/
+    cd ./configure ; make
+
+Building from the repository and creating releases additionally needs
+GNU autotools:
+
+- autoconf: http://gnu.org/s/autoconf
+- automake: http://gnu.org/s/automake
+
+To create the book from the repo:
+
+    autoreconf -i; ./configure; make
+
+To create a release:
+
+    (adjust the version in configure.ac)
+    autoreconf -i; ./configure; make distcheck

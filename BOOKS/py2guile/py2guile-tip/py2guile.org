@@ -1,0 +1,2422 @@
+#+title: Going from Python to Guile Scheme
+#+author: Arne Babenhauserheide
+#+options: toc:nil H:6 timestamp:nil
+
+# Nice guide for styling a book: http://latex-my.blogspot.de/2010/01/front-and-back-covers.html
+
+#+HTML_HEAD: <style type="text/css">.logo {text-align: center; width: 100%} .logo img {width: 38%; min-width: 24em}</style>
+
+#+latex_class: memoir
+#+latex_class_options: [a5paper]
+# setup links. See http://en.wikibooks.org/wiki/LaTeX/Hyperlinks#Customization
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \usepackage{pdfpages}
+#+LATEX_HEADER: \usepackage{xcolor}
+# FAKE ISBN for now.
+#+LATEX_HEADER: \usepackage[ISBN=000-00-00000-00-0]{ean13isbn}
+#+LATEX_HEADER: \DeclareUnicodeCharacter{A0}{\ }
+#+LATEX_HEADER: \hypersetup{
+#+LATEX_HEADER:     colorlinks,
+#+LATEX_HEADER:     linkcolor={red!50!black},
+#+LATEX_HEADER:     citecolor={blue!30!black},
+#+LATEX_HEADER:     urlcolor={blue!50!black}
+#+LATEX_HEADER: }
+# extensive microtype from http://www.khirevich.com/latex/microtype/
+#+latex_header: \usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=1100,stretch=10,shrink=10,protrusion=true,expansion=true]{microtype}
+#+latex_header: \usepackage{lmodern}
+#+latex_header: \usepackage{wallpaper}
+#+LaTeX_HEADER: \usepackage{rotating}
+#+LaTeX_HEADER: \usepackage{csquotes}
+#+LaTeX_HEADER: \usepackage[absolute,overlay]{textpos}
+#+LaTeX_HEADER: \makeatletter
+#+LaTeX_HEADER: \renewenvironment{minted@colorbg}[1]{
+#+LaTeX_HEADER: \setlength{\fboxsep}{\z@}
+#+LaTeX_HEADER: \def\minted@bgcol{#1}
+#+LaTeX_HEADER: \noindent
+#+LaTeX_HEADER: \begin{lrbox}{\minted@bgbox}
+#+LaTeX_HEADER: \begin{minipage}{\linewidth}}
+#+LaTeX_HEADER: {\end{minipage}
+#+LaTeX_HEADER: \end{lrbox}%
+#+LaTeX_HEADER: \colorbox{\minted@bgcol}{\usebox{\minted@bgbox}}}
+#+LaTeX_HEADER: \makeatother
+# titlepage with help from : http://www.deesaster.org/blog/index.php?/archives/2299
+#+LaTeX_HEADER: \setlength{\droptitle}{-100pt}
+#+LaTeX_HEADER: \raggedbottom
+#+LaTeX_HEADER: \newcommand{\subtitle}{a natural progression}
+#+LaTeX_HEADER: 
+# hide title, subtitle, author and date by making them white and add self-styled replacements.
+#+LaTeX_HEADER: \renewcommand{\maketitlehooka}{\begin{picture}(0,0)
+#+LaTeX_HEADER:    \put(-20,-278){\turnbox{33}{\HUGE \textcolor{white}{\thetitle}}}
+#+LaTeX_HEADER: \end{picture}\color{white}}
+#+LaTeX_HEADER: \renewcommand{\maketitlehookb}{\color{black}\begin{picture}(0,0)
+#+LaTeX_HEADER:    \put(129,-155){\turnbox{33}{\Huge \textcolor{white}{\subtitle}}}
+#+LaTeX_HEADER: \end{picture}\color{white}}
+#+LaTeX_HEADER: \renewcommand{\maketitlehookd}{\ThisLLCornerWallPaper{1}{green_tree_python-flickr-author-msvg-michael_gil-license-cc_by-4533044418_707b0029b2_o-and-guile-gnu-goatee-by-martin-grabmueller-license-gplv3-or-later-unified-resynth.jpg}\color{black}}
+#+LaTeX_HEADER: 
+#+LaTeX_HEADER: \renewenvironment{abstract}{%
+#+LaTeX_HEADER: \hfill\begin{textblock*}{100mm}(12mm,12mm)
+#+LaTeX_HEADER: \noindent%\rule{\textwidth}{1pt}
+#+LaTeX_HEADER: \noindent \huge \begin{displayquote}}
+#+LaTeX_HEADER: {\end{displayquote}\par\noindent%\rule{\textwidth}{1pt}
+#+LaTeX_HEADER: \end{textblock*}}
+
+# verbiete Schusterjungen und Hurenkinder
+#+LATEX_HEADER: \clubpenalty = 10000
+#+LATEX_HEADER: \widowpenalty = 10000
+#+LATEX_HEADER: \displaywidowpenalty = 10000
+
+
+#+LaTeX: \definecolor{bg}{rgb}{0.98,0.98,0.98}
+
+#+name: setup-minted
+#+begin_src emacs-lisp :exports results :results silent
+  (require 'ox-latex)
+  (add-to-list 'load-path ".")
+  (require 'htmlize)
+  (require 'wisp-mode)
+  (setq org-src-fontify-natively t)
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (add-to-list 'org-latex-packages-alist '("" "color"))
+  (setq org-latex-listings 'minted)
+  (setq org-latex-packages-alist (quote (("" "color" t) ("" "minted" t) ("" "parskip" t))))
+  (setq org-latex-pdf-process
+   (quote ; really needs so many runs to get all references right
+    ("pdflatex -interaction nonstopmode -shell-escape -output-directory %o %f" "bibtex $(basename %b)" "pdflatex -interaction nonstopmode -shell-escape -output-directory %o %f" "pdflatex -interaction nonstopmode -shell-escape -output-directory %o %f" "pdflatex -interaction nonstopmode -shell-escape -output-directory %o %f" "pdflatex -interaction nonstopmode -shell-escape -output-directory %o %f")))
+
+  ; add emacs lisp support for minted
+  (setq org-latex-custom-lang-environments
+        '((emacs-lisp "common-lispcode")))
+
+  (add-to-list 'org-latex-classes
+             `("memoir" "\\documentclass[11pt]{memoir}"
+  ("\\part{%s}" . "\\part*{%s}")
+  ("\\chapter{%s}" . "\\chapter*{%s}")
+  ("\\section{%s}" . "\\section*{%s}")
+  ("\\subsection{%s}" . "\\subsection*{%s}")
+  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+  ("\\paragraph{%s}" . "\\paragraph*{%s}")
+  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  ; treat wisp as scheme for minted
+  (add-to-list 'org-latex-minted-langs '(wisp "racket"))
+  ; dark background and nicer minted source blocks
+  (setq org-latex-minted-options
+    '(("bgcolor" "bg") ("frame" "lines") ("framesep" "6pt") ("numbersep" "6pt") ("linenos" "true") ("mathescape" "true") ("fontsize" "\\footnotesize")))
+#+end_src
+
+#+begin_abstract
+After 6 years of intense Python-Programming, I am starting into Guile Scheme. And against my expectations, I feel at home.
+
+# abstract environment is \huge by default, so use \large for the smaller name.
+#+latex: \large \hspace*{1mm}-- Arne Babenhauserheide
+
+# #+html: PDF-Version: <a href="./py2guile-v08.pdf">py2guile-v08.pdf</a> — Source: <a href="./py2guile.org">py2guile.org</a>.
+
+#+html: <div class="logo"><img src="green_tree_python-flickr-author-msvg-michael_gil-license-cc_by-and-guile-gnu-goatee-gnu-author-martin-grabmueller-license-gplv3-or-later-800x600.jpg" alt="logo"/></div>
+#+end_abstract
+
+# skip the second page for printing with epubli.de
+#+latex: \newpage % needed for the next line to work!
+#+LATEX: \setcounter{page}{3} % reset the page counter variable (fake being on page 3)
+#+latex: \frontmatter
+
+#+BEGIN_LaTeX
+\begin{center}
+\LARGE
+Going from Python to Guile Scheme\\ \vspace*{1em} 
+\Large a natural progression
+\normalsize
+\end{center}
+#+END_LaTeX
+
+#+latex: \vfill
+
+#+BEGIN_CENTER
+For my children\\
+who give me the strength to keep going every day\\
+
+#+latex: \vspace*{1em}
+
+my love\\
+who helps me keep my feet on the ground\\
+
+#+latex: \vspace*{1em}
+
+my roleplaying group\\
+which keeps my mind alive\\
+
+#+latex: \vspace*{1em}
+
+my friendly collegues at the institute\\
+whom I helped with Python\\
+
+#+latex: \vspace*{1em}
+
+and all the Free Software and Free Culture Hackers\\
+who make our world a better place.
+#+END_CENTER
+
+#+latex: \newpage
+
+#+latex: \vfill
+
+# Impressum following http://www.ebokks.de/2012/08/09/selbstverleger-und-die-impressumspflicht/
+# and http://www.studienkreis-presserecht.de/main/gesetze-lpg-Baden.htm
+
+The cover is made by VHR and Arne Babenhauserheide and builds on [[https://www.flickr.com/photos/msvg/4533044418/][Green Tree Python]] from Michael Gil, licensed under the [[https://creativecommons.org/licenses/by/2.0/][creativecommons attribution license]], and [[https://www.gnu.org/software/guile/graphics/][Guile GNU Goatee]] from Martin Grabmüller, licensed under [[http://gnu.org/l/gpl][GPLv3 or later]]. It follows the time-honored tradition of ignoring the real history of the name Python.
+
+© 2014--2015 Arne Babenhauserheide
+
+Cover and Illustration: VHR and Arne Babenhauserheide, images from Michael Gil and Martin Grabmüller.
+
+Released: 2015-09
+
+Editing: Arne Babenhauserheide
+
+# Lektorat, Korrektorat: Arne Babenhauserheide
+
+Contributions by Ludovic Courtes (Ludo), Clinton (Unknown Lamer), David Thompson (davexunit), Mark Witmer and Mu Lei (NalaGinrut)
+
+Publisher: Arne Babenhauserheide, Spöcker Str. 10, 76676 Graben-Neudorf, Germany
+
+This book is licensed as [[http://copyleft.org][copyleft]] [[http://freedomdefined.org][free culture]] under the [[http://gnu.org/l/gpl][GPLv3 or later]]. Except for the title image, it is copyright (c) 2014--2015 Arne Babenhauserheide. Get the source or buy other versions from [[http://draketo.de/py2guile][draketo.de/py2guile]]. You can find a plain html version at [[http://draketo.de/proj/py2guile][draketo.de/proj/py2guile]].
+
+# This is the [[https://freenetproject.org][Freenet]] exclusive ebook. If you got it via other channels, please install [[https://freenetproject.org][Freenet]] and share it there! \\ https://freenetproject.org \\ when free speech dies we need a place to organise!
+
+This is the free preview-version. If you enjoy this book, please consider buying py2guile from [[http://draketo.de/py2guile][draketo.de/py2guile]] as ebook or in print (ISBN: 9783737568401).
+# For the free preview, add a nagware page before randomly chosen chapters.
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage[first=1, last=4, seed=13]{lcg}
+#+LATEX_HEADER: \makechapterstyle{nag}{\renewcommand*{\chapterheadstart}{\rand\ifthenelse{\equal{\arabic{rand}}{1}}{\vspace*{-2cm}\makebox[\linewidth]{\href{http://draketo.de/py2guile}{\color{black}{\includegraphics[width=1.3\linewidth]{nagware.pdf}}}}\newpage\phantom{ghost}\newpage\phantom{ghost}}{\phantom{ghost}}}}\chapterstyle{nag}
+
+# This is the paid digital version -- that’s awesome! Thank you for buying py2guile and supporting Free Culture!
+
+# You can download the digital companion to your book from http://draketo.de/dl/4c043c26-py2guile-rev1-dc.zip
+
+# Thank you for buying py2guile and supporting Free Culture!
+
+# This is the digital companion to the printed book -- that’s awesome! Thank you for buying py2guile and supporting Free Culture!
+
+#+latex: \clearpage
+
+#+BEGIN_CENTER
+Dedicated to Jürgen Hesser.\\
+
+#+latex: \vspace*{1em}
+
+I once tried to convince you\\
+to teach Python instead of Scheme.\\
+You were right in the end.\\
+It seems those 30 years of experience\\
+amount for something.\\
+
+#+latex: \vspace*{1em}
+
+Thank you!
+#+END_CENTER
+
+#+latex: \clearpage
+
+# #+latex: \emph{The title image is built on \href{https://www.flickr.com/photos/msvg/4533044418/}{Green Tree Python} from Michael Gil, licensed under the \href{https://creativecommons.org/licenses/by/2.0/}{creativecommons attribution license}, and Guile GNU Goatee from Martin Grabmueller, Licensed under GPLv3 or later.}
+
+#+TOC: headlines 2
+# /The title image is built on [[https://www.flickr.com/photos/msvg/4533044418/][Green Tree Python]] from Michael Gil, licensed under the [[https://creativecommons.org/licenses/by/2.0/][creativecommons attribution license]], and Guile GNU Goatee from Martin Grabmueller, Licensed under GPLv3 or later./
+#+latex: \mainmatter
+
+* Python
+** My story
+*** Into Python
+When I was still at school, I learned HTML and CSS. I was delighted: I could tell the computer to follow my orders. I was so happy that I even wrote text directly in HTML. It was a horrible syntax, but it worked. And I did not know better.
+
+Later in my school-life I started with Java to contribute to a program. It felt bloated and wrong - even compared to HTML. I never learned to really program in it. When I went to university, I took a course on C. The hardest challenge in the first lessons was the syntax. I stopped halfway through the course because I learned more by asking my flatmate than from the course (thanks RK!).
+
+A few months later I learned about Python, and it worked at the first glance. I felt at home.
+
+*** And beyond
+
+It’s now 6-7 years since I wrote my first lines of Python, and I’ve been hacking on Python-projects ever since (and did my Diploma-Thesis in a mix of Python, template-heavy C++ and R, but that’s a story for another day).
+
+In Summer 2013 I then read [[http://chimera.labs.oreilly.com/books/1234000001813/ch02.html#the_white_belt][The White Belt]] in the book Apprenticeship Patterns:[fn:10]
+
+#+BEGIN_QUOTE
+/“You are struggling to learn new things and it seems somehow harder than it was before to acquire new skills. The pace of your self-education seems to be slowing down despite your best efforts. You fear that your personal development may have stalled.”/ 
+— David H. Hoover and Adewale Oshineye in Apprenticeship Patterns
+#+END_QUOTE
+
+I felt a pang of recognition.
+
+I have grown so familiar with Python that the challenges I face at my
+PhD no longer require me to dig deeper with it. I mostly recreate
+solutions I already used for something else. So I decided to take a
+leap and learn something completely different. I chose
+[[http://gnu.org/s/guile][Guile Scheme]], because it provides its own
+sense of elegance and challenged my existing notions of programming.
+
+To my surprise it felt strangely natural, so much so, that I wanted to
+share my experience. Where Python was my first home, nowadays it feels
+like Guile Scheme could become a second home for me.
+
+/If you want to use Guile Scheme, also have a look at [[http://draketo.de/proj/guile-basics/][Guile Basics]][fn:11] which answers some of the questions I faced when starting my dive into Scheme./
+
+** The Strengths of Python
+
+To understand new experience, we need to know where we are. So, before I go into my experience with Scheme, let’s start with Python and why it’s awesome:
+
+#+BEGIN_QUOTE
+/“Pseudocode with one right way to do it and hackable, scalable batteries.”/ 
+— Arne Babenhauserheide
+#+END_QUOTE
+
+*** Pseudocode which runs
+
+Python is rightfully known as pseudocode which actually runs. You can give a book-author a (simple) Python script and he or she will understand what it does without much explanation:
+
+#+BEGIN_SRC python
+  for address in addresses:
+    print address
+#+END_SRC
+
+But this is only part of what makes it special.
+
+*** One way to do it
+
+#+BEGIN_QUOTE
+/“Python is a language where I can teach a handful of APIs and cause people to learn most of the language as a whole.”/ 
+— [[http://youtu.be/u1sVfGEBKWQ][Raymond Hettinger (2011-06-20)]]
+#+END_QUOTE
+
+The simplicity of learning Python illustrated by this quote is enhanced by one of the pillars of the philosophy of Python:
+
+#+BEGIN_QUOTE
+/“There should be one -- and preferably only one -- obvious way to do it.”/
+— Aphorism 13 in the [[http://www.python.org/dev/peps/pep-0020/][Zen of Python]] by Tim Peters
+#+END_QUOTE
+
+This philosophy, among others, is enshrined in the [[http://www.python.org/dev/peps/pep-0020/][Zen of Python]], also know as pep-20, easily called up in the Python interpreter by invoking:
+
+#+BEGIN_SRC python
+import this
+#+END_SRC
+
+Following the Zen of Python creates nicely usable APIs and minimizes guesswork - and when you have to guess, you are right most of the time. Since most Python developers follow this philosophy, Python is a really nice language for facing real-life challenges: It provides only the functions needed to solve problems, with great default options, a strong focus on the actual tasks and polished so deeply that its different aspects merge together into one consistent whole.
+
+It is a minimal ontology which encodes the most common operations in readily understandable wording, designed in a way which provides a clearly distinguishable canonical way to tackle a problem. A wonderful user-interface.
+
+Together with looking like pseudocode, this makes Python a good choice for beginning programmers. In my first years of programming I thought that I’d never need anything else.
+
+*** Hackable, but painfully
+
+In all this simplicity, Python provides access to its inner workings. It allows you to do all the crazy things you need to do at times to solve problems.
+
+Almost every aspect of its functionality is explicitly exposed at runtime in dictionaries. This provides for great introspection - and enables features like doctests, the most intuitive way I ever saw to test simple functions:
+
+#+BEGIN_SRC python
+  def hello():
+    """Greet the World.
+    
+    >>> hello()
+    Hello World!
+    """
+    print "Hello World!"
+#+END_SRC
+
+You can create classes whose instances can be executed by adding a =__call__= method, and change the effect of mathematical operators by redefining the =__add__= method, and you can fiddle with the local bindings in your namespace and much more.
+
+And if you need to get really nasty, there are always =eval= and =exec= to run self-generated code. I only had reason to use that one single time, but there it really worked out - and became completely unmaintainable. Luckily it was a one-shot script. I only had to change it once after the initial creation. In hindsight using =exec= was lot’s of fun - and I hope I won’t have to ever do it again.
+
+While Python offers the possibilities, all this hacking feels hindered, as if the language provided resistance at every step.
+
+For example, if you want to find the file in which a given function is defined, you can do it like this:
+
+#+BEGIN_SRC python
+  # preparation: Get a function without context
+  from math import log
+  # get the module name
+  modulename = log.__module__
+  # import the module
+  mod = __import__(modulename)
+  # get the filename. Use dir(mod) to find out what you can do.  
+  # Or use tab-completion in the python-shell 
+  # (if you enabled GNU readline - if you did not: 
+  # Best enable readline right now!)
+  filename = mod.__file__
+  print filename
+  # here this gives /usr/lib64/python2.7/lib-dynload/math.so
+#+END_SRC
+
+This is not what I would call elegant. 
+
+And I think that is intentional: Make the canonical way easier than other ways, but allow using other ways if someone really wants to.
+
+Despite the verbosity and despite the double underscores screaming “do not touch this!”, the discoverability is very good, because we can get all these options with dir() or tab-completion. Just explore to find out about the hidden tricks you could use.
+
+*** Batteries and Bindings
+
+Most of the time, you do not need to go to such extremes, though. Any standard Python installation already includes solutions for most problems you need to tackle in normal programming tasks, and there are bindings to almost every library under the sun.
+
+#+BEGIN_SRC python
+  import antigravity
+#+END_SRC
+
+Most of these libraries are really well-done and modern, like matplotlib. And tools like cython make it very easy to write bindings - as well as extensions which compile as C-code and get all the performance you can wish for. The best program to do a job is one which already ships the solution. By that metric Python is a very good fit for most jobs nowadays.
+
+Together with hackability this makes Python a good and “pragmatic” choice for experienced programmers.
+
+Most of this is a product of hackability, searching for the canonical “pythonic” way to solve a problem and popularity, but it is still driven by the choice to provide these batteries and make it easy to use them.
+
+*** Scales up
+
+And finally, Python actually scales up from simple scripts to complex frameworks.
+
+- Namespaces cleanly separate imported code /by default/, 
+- modules make code reusable /by default/, 
+- on-demand-import hacks minimize the loading cost of huge frameworks, 
+- properties allow starting with simple attributes which can use getters and setters later on /without breaking the exposed API/, and 
+- positional arguments which double as keyword-arguments make it easy to keep functions manageable /without breaking the exposed API/ when their argument-list starts to grow.
+
+Together with the other strengths, its scalability makes Python a very nice tool which accompanies you from your first tentative steps into programming up to highly productive professional work.
+
+** Limitations of Python
+
+With all its strengths, Python is still a language with a limited syntax. It is very broadly applicable, but it has strict rules how things can be done. These rules create a straightjacket you cannot escape easily. Most of the time, they are convenient, and they can help when you develop code in a community. But regardless of the chains you choose, they can never be convenient for all tasks. And whatever the task, when you go deep enough, even golden chains hurt.
+
+*** The warped mind
+
+#+BEGIN_QUOTE
+/“You must unlearn what you have learned.”/ 
+— Yoda in “The Empire Strikes Back“ 
+#+END_QUOTE
+
+If a programming language warps your mind, that manifests itself in limited imagination: When you tackle a problem, you think in the syntax of that language, and if that syntax cannot express something in a convenient way, you have a hard time even imagining that the solution could be easy.
+
+Different from C++ and Git, Python only starts warping your mind very late in the game. But when it does so, it still hurts.
+
+And hacking the syntax of Python is a task which is very distinct from general Python programming, so you cannot easily escape its chains.
+
+On another front you could say that Python is the worst of mind warpers: It makes you think that source code can be easy to read and understand and versatile at the same time. And it is right, though it does not itself reach that goal completely. It set an important upper limit for acceptable unintelligibility: If a language is too painful, people will just use Python instead.
+
+*** Templates condemn a language
+
+#+BEGIN_SRC python
+if __name__ == "__main__": 
+   # run the script
+#+END_SRC
+
+I really started feeling the limitations of Python when I had to write certain phrases over and over again. It requires quite a bit of ceremony[fn:12] for regularly needed tasks. When you start thinking about using code-templates in your editor to comply with the requirements of your language, then it is likely that something is wrong with the language.
+
+A programming language is an interface between humans and the computer. If you need a tool to use the language, then it does not do its job.[fn:1]
+
+Though Python works pretty long with the basic indentation-support which also helps when writing prose, some of its long-winded phrases begin to really disrupt work. And a Python-Programmer cannot escape them.
+
+*** Python syntax reached its limits
+
+#+BEGIN_QUOTE
+/“Why, I feel all thin, sort of stretched if you know what I mean: like butter that has been scraped over too much bread.”/ 
+— Bilbo Baggins in the Lord of the Rings from J.R.R. Tolkien
+#+END_QUOTE
+
+I find myself seeing constructs in Python-code as hacky workarounds which I previously accepted as “how programming works”. I now look at this:
+
+#+BEGIN_SRC python
+  if x:
+      a = 1
+  else: 
+      a = 2
+#+END_SRC
+
+and I hate the fact, that I cannot just say
+
+#+BEGIN_SRC python
+a = if(x 1 2)
+#+END_SRC
+
+Though I can actually do something similar [[http://docs.python.org/2/whatsnew/2.5.html#pep-308][since Python 2.5 (PEP-308)]], but it is written like this:
+
+#+BEGIN_SRC python
+a = 1 if x else 2
+#+END_SRC
+
+And that just looks alien. It does not feel like Python. But with Python-syntax, the only better solution is adding parentheses to make it look like a generator expression and as such very different from other Python-code (this is what Guido van Rossum recommends,[fn:5] but in real-life I see people recommend the previous version):
+
+#+BEGIN_SRC python
+a = (1 if x else 2)
+#+END_SRC
+
+This isn’t the simple Python syntax anymore. The uniformity of the syntax is broken. And this is not necessary for a programming language. For example with Scheme, where all code is just a tree of evaluated expressions, I can write the following - and it looks the same as all other code:
+
+#+BEGIN_SRC scheme
+  (define a (if x 1 2))
+#+END_SRC
+
+This might seem useless, but I am currently hitting code would benefit from it all the time. For example here (real code):
+
+#+BEGIN_SRC python
+  direction = [(math.atan(v[1]/u[1])
+                if ((v[1]*u[1] > 0) and not v[1] < 0) else 
+                -math.atan(v[1]/u[1]))
+               for u, v in zip(mfu, mfv)]
+#+END_SRC
+
+The new syntax additions to Python feel like Python syntax is already stretched to its limit. It is expanding into generator-expressions and list-comprehensions, because its “natural” syntax is breaking down with the new features people wish for (at least that’s how it looks to me).
+
+*** Complexity is on the rise
+
+This expansion into non-pythonic territory does not stop at the syntax, though. When I started learning Scheme, I read an article by Michele Simionato on [[http://www.phyast.pitt.edu/~micheles/scheme/scheme21.html][compile time vs. runtime in Scheme]].[fn:32] I thought “Luckily I don’t have to worry about that in Python” -- and just a few weeks later I stumbled over strange breakage of my Python function cache decorator.
+
+It turned out that the simple act of adding function decorator syntax introduced all the complexities of separating compile time vs. runtime functionality into Python. The extent of this change can be shown in a few lines of code:
+
+#+BEGIN_SRC python
+def deco(fun):
+    return mun
+
+@deco
+def mun():
+    print ("Welcome to compile-time breakage!")
+
+def mun():
+    print ("We have to introduce a proxy.")
+
+@deco
+def proxy():
+    pass
+#+END_SRC
+
+When this code tries to define the decorated =mun()= function, it fails with =NameError: global name 'mun' is not defined=. The reason is as simple as horrifying: The decorator =@deco= forces the function =deco= to run while =mun= is being defined, and the =deco= function requires access to the =mun= function during execution. This breaks the assumption that functions can use not yet defined functions as long as the execution of these functions happens later. It brings new import-conflicts and increases the depth of understanding you need to be able to anticipate how a given piece of code will behave.
+
+This change, along with generator expressions and a few other features, strongly increased the complexity of the language without giving its users all the benefits which are available in languages that were designed from first principles to provide these features. Looking at this, it seems like the experiment which Guido van Rossum dared with Python failed to some degree:
+
+#+BEGIN_QUOTE
+/“Python is an experiment in how much freedom programmers need. Too much freedom and nobody can read another's code; too little and expressiveness is endangered.”/ 
+— Guido van Rossum, 1996-08-13
+#+END_QUOTE
+
+There clearly is a need for more complex functionality among Python programmers -- its limitations are perceptible -- and in trying to fulfill this need, Python stretched syntactically and conceptually, and keeps stretching, but its limits already come into view. As it is pushed over the limitations of its design, the complexity of Python explodes and increases the cost of future additions. This makes it unlikely that Python can overcome its limitations without losing the strengths which made it an ideal tool to start programming.
+
+This does not void any of its advantages. Python stays a great language, with an active community which promotes readable code and practically useful tools along with a mentality that stuff should just work. It is the language I would recommend and use any day to solve practical problems. But for diving into the depth of programming I have to broaden my view.
+
+*** Time to free myself
+
+And this brings us back to [[http://chimera.labs.oreilly.com/books/1234000001813/ch02.html\#the_white_belt][The White Belt]] from Apprenticeship patterns, this time in longer form: 
+
+#+BEGIN_QUOTE
+/“You have developed a deep understanding of your first language and are walking comfortably on a plateau of competence. […but…] You are struggling to learn new things and it seems somehow harder than it was before to acquire new skills. The pace of your self-education seems to be slowing down despite your best efforts. You fear that your personal development may have stalled.”/
+— David H. Hoover and Adewale Oshineye in Apprenticeship Patterns
+#+END_QUOTE
+
+I tried every trick with Python - from very clean, automatic documentation up to runtime code-generation. And now I hit a wall: Its limitations do not allow me to move onward.
+
+Python accompanies you on your road from beginner to experienced programmer, but no further.
+I learned a lot about structuring information by programming in Python. I learned that programs can be easy to read and understand for newcomers. And I learned about the importance of having identifiers whose names in themselves form a well-defined and optimized language. But it is time to free myself from its shackles.
+
+* Guile Scheme
+** Starting into Guile Scheme
+So I started looking into other programming languages. I had two main contenders: 
+
+- Fortran, the tried and true tool for engineers, and
+- Scheme, the academic branch of the Lisps.
+
+I started with Fortran as the pragmanic choice for a physicist, but soon I caught myself replicating every Fortran-experiment in Scheme. So I decided to follow my gut and dive into Scheme. From there on, the choice was easy: There are several Scheme implementations - and one of them is from the [[http://gnu.org][GNU Project]]: [[http://gnu.org/s/guile][Guile]].[fn:7][fn:13] But before really starting with that, I read [[http://www.phyast.pitt.edu/~micheles/scheme/][The Adventures of a Pythonista in Schemeland]] ([[http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf][PDF]]) by Michele Simionato.
+
+It is half a year later, and Scheme now feels natural to me. Actually more natural than Python.
+
+The expressiveness of the original syntax of Python was a bit too limited, and this caused the language to hatch a new syntax which makes the whole of Python much more complex. There is no longer a simple uniform syntax, but two complementary styles with different structures. It is still very easy to understand and I think that it set a new standard for readability of code - so in that aspect the Python experiment was a phenomenal success - but it is starting to break down as people expand it into more and more directions.
+
+Guile Scheme on the other hand can accomodate new functionality much more easily. And from the intuitive side, I now see commas between function arguments and they feel like needless bloat. My gut suddenly says “leave out the commas!”, and I find myself forgetting them in Python-code. I think the commas once looked useful to me, because languages with commas helped me get rid of the quoting hassles in the shell, but now there’s a language which does not require commas to achieve that goal - and stays clean. That sounds small, but it changes radically how the language feels.
+
+*** But the (parens)!
+
+#+BEGIN_QUOTE
+/“LISP: Lots of Irritating Superfluous Parentheses.”/ 
+— popular skit.
+#+END_QUOTE
+
+Lisps have long been criticised for their use of parentheses. And rightly so.
+
+Yes, the parens are horrible. I no longer see them as strongly as when I started (they faded a bit into the background), but I still remember how they horrified me when I began hacking my Emacs config - and even when I started with Guile.
+
+#+BEGIN_SRC scheme
+  (for 
+   ((beginners (readability of parens))
+    (is horrible)))
+#+END_SRC
+
+This becomes even worse in bigger code examples - with often 5 or 6 parens closed at the end of a function. The moment your examples get bigger than the ones in the first 90% of The Little Schemer,[fn:36] it becomes hard to keep track of the parens without strong support from your editor.
+
+So I started contributing to a fix. At first I joined [[http://readable.sf.net][readable]] (nowadays known as SRFI-110). But when the readable-developers added syntax using =$=, =\\= and =<* *>=, readable lost me. It had left the path of the minimalist elegance which fascinates me in Lisp. Therefore I began to work on a simpler solution.
+
+That solution is [[http://draketo.de/proj/wisp][Wisp]]: A whitespace-to-Lisp preprocessor. 
+
+Wisp also known as Scheme Request For Implementation 119: [[http://srfi.schemers.org/srfi-119/srfi-119.html][SRFI-119]].[fn:34][fn:14]
+
+The previous code-block with parens was indented in the canonical way for Lisp. If you write the same code-block without parens and add some syntax for double- and inline-parens, Wisp can transform it into full-fledged scheme which you can then run:
+
+#+BEGIN_SRC wisp
+  for 
+    : beginners : readability of parens
+      is horrible
+#+END_SRC
+
+Wisp uses the minimum indentation-sensitive syntax which can represent arbitrary Lisp-structures and is implemented in Wisp itself. With this, the readability is not yet quite on the level of Python, but it is getting close - at least close enough for me. 
+
+I started with an analysis of what indentation-sensitive syntax means, and interestingly I now find ways to write more elegant code in that syntax - ways I did not think about when I defined Wisp. I am still learning how to write nice Wisp-code, and I think that is a good sign: The syntax brings its own “natural” style.
+
+Thanks to the flexibility of GNU Guile, you can even use Wisp in the interactive console (implemented with help from Mark H. Weaver and others from [[http://webchat.freenode.net?randomnick=1&channels=%23guile&uio=OT10cnVlJjEyPXRydWU62][\#guile]] on irc.freenode.net!). Just get [[http://draketo.de/proj/wisp][Wisp]][fn:42] and run 
+
+#+BEGIN_SRC sh
+./configure; make check;
+guile -L . --language=wisp
+#+END_SRC
+
+After having a fix for the most pressing problem I see in Guile Scheme (the parens kill newcomers), I could proceed to testing how Guile Scheme with Wisp compares to Python - and as you’ll guess, you read this book, because Guile Scheme did remarkably well.
+
+*** Summary
+
+
+We saw how complexities crept into Python, which was written with the expressed goal to be more limited than Lisps, making it one more example of [[http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming][Philip Greenspuns 10th Rule]]:[fn:41]
+
+#+BEGIN_QUOTE
+/“Every sufficiently complex application/language/tool will either have to use Lisp or reinvent it the hard way.”/ 
+— [[http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming][Generalization of Philip Greenspuns 10th Rule]] 
+#+END_QUOTE
+
+In contrast, after some time of getting used to it and finding a fix for the parens, Scheme now feels really natural for me.
+
+And with that, I can go on and compare Guile Scheme to the strengths of Python. We will pit Guile Scheme against Python in the areas where Python rules the place and see how Guile Scheme fares.
+
+** Comparing Guile Scheme to the Strengths of Python
+
+After having listed the many strengths of Python, it’s time for a very unfair comparison: How does Guile Scheme stand against the strongest aspects of Python?
+
+I ask this, because it is what Python-Programmers will ask - and because it is what *I* asked myself when looking into Guile Scheme.
+
+Later we will see where Guile Scheme enables us to go beyond Python. But now: Let’s start the race.
+
+*** Pseudocode
+
+We showed that Python is rightfully known as "Pseudocode which actually runs".
+
+Using the indentation sensitive syntax of Wisp, Guile Scheme also comes close to runnable pseudocode. Maybe even closer than Python. Let’s test this with examples.
+
+**** General Pseudocode
+
+The following shows Guile Scheme code using the Wisp-reader to leave out most parentheses. It realizes the well-known FizzBuzz game which is used in the English Wikipedia as an [[http://en.wikipedia.org/wiki/Pseudocode\#Syntax][example for pseudocode]]. And different from the Wikipedia-examples, the code here actually runs.
+
+#+BEGIN_SRC wisp
+  ;; this example needs foof-loop installed via guildhall!
+  ;; see https://github.com/ijp/guildhall/wiki/Getting-Started
+  use-modules : guildhall ext foof-loop
+
+  ;; Pseudocode adapted from 
+  ;; http://en.wikipedia.org/wiki/Pseudocode#Syntax
+  define : divisible? number divisor
+           = 0 : remainder number divisor
+
+  define : fizzbuzz
+    let : : print_number #f
+      loop : : for i : up-from 1 : to 100
+          set! print_number #t
+          when : divisible? i 3
+                 display "Fizz"
+                 set! print_number #f
+          when : divisible? i 5
+                 display "Buzz"
+                 set! print_number #f
+          when print_number
+                 display i
+          newline
+
+  fizzbuzz
+
+#+END_SRC
+
+I did not expect to find such simple pseudo-code in another language than Python, but Scheme actually provides it.
+
+**** Uniformity
+
+Similarly, uniformity of code is generally considered as one of the huge strengths of Python, a strength which gives normal code the readability of pseudocode: When you know one Python-program, you can find the patterns used there in all future Python-programs you read.
+
+Modern Python however offers a kind of dual syntax. The first, simple syntax provides indentation-sensitive control flow, declarative data-definition and function calls:
+
+#+BEGIN_SRC python
+  for i in [1, 2, 3, 4]:
+      if i >= 4:
+         continue
+      def counter():
+          if i != 2:
+              for j in range(i):
+                  yield j
+      print list(counter())
+#+END_SRC
+
+And then there are generator-expressions, the second syntax:
+
+#+BEGIN_SRC python
+    for k in (range(i) 
+              if i != 2 else []
+              for i in [1, 2, 3, 4]
+              if i < 4):
+        print k
+#+END_SRC
+
+/(These are synthetic code examples to show you all the interacting features in as little space as possible. Make them three times as long and calling into external functions at every step, then you have something close to real code I read and wrote.)/
+
+Both of these expressions are valid Python, and they yield the same result, but in the tutorials I saw over the years, newcomers mostly learn the first style, not the second - and the first style is the original Python-syntax. When you see that second syntax in raw form, it looks really bolted-on and the parentheses only barely contain, how alien it is to the original Python:
+
+#+BEGIN_SRC python
+a = 1
+b = 1 if a != 1 else 2
+c = (1 if b > 2 else 3)
+#+END_SRC
+
+And here Guile Scheme can go a step further towards uniformity.
+
+The addition of generator-expressions to Python essentially creates two completely different languages mixed into one. And I expect to see huge battles between these two syntactic forms in the coming years.
+
+In contrast, Scheme provides one single syntax: The function-call with parameters and a return value. And the symbol-binding let-syntax is quite close to the generator-style in the Python-example:
+
+#+BEGIN_SRC wisp
+  use-modules : guildhall ext foof-loop
+
+  loop : : for i : in-list '(1 2 3 4)
+           if {i < 4}
+              let : : k : cond ((not {i = 2}) (iota i)
+                               (else '()))
+                      display k
+#+END_SRC
+
+But different from Python, this is the default syntax in Scheme. A common theme between both is that the outer code uses indentation (in Scheme via Wisp) while the inner code uses parentheses. There is also some degree of duality in this Scheme example, but in Python the inner code structure works differently than the outer code while in Scheme the only change is that the code switches to using parentheses instead of indentation to mark scope. You could use indentation for the inner part, too, but that would look more busy, and parentheses everywhere would be harder to read for most people (though it would look more uniform). This is the value of having complementary ways to format your code, in Python as well as in Scheme. But both ways should use a uniform structure, and Python does not achieve that while Scheme does so easily.
+
+And it is possible to get even closer to the generator-example in Python without breaking the basic syntax by using the syntax-adjustment capabilities Scheme provides for its users.
+
+It misses the kind of polish which went into Python and which has the effect that after some time the generator expressions in Python look neat instead of completely alien. But the foundation of Scheme is much stronger: It can express both styles in the same structure.
+
+So let’s use this strong position to look at something which appears to be a sore spot at first:
+
+**** Pseudocode with loops
+
+When starting to look into loops in Guile Scheme, my initial impression was bleak. But don’t let yourself be fooled by that: When I looked deeper into it, that impression changed: The looping constructs in basic scheme are pretty limited, but it has many syntax extensions which make looping enjoyable.
+
+Let’s first start with my initial impression of basic scheme. This is what newcomers will see (at the current state of the documentation).[fn:9]
+
+***** Initial impression
+
+Scheme canonically only supports do-loops, while-loops and let-recursion, so loops look like the following:
+
+****** Do
+
+# The format looks horrible when the code-block follows the title directly, so we should describe this.
+
+The basic loop, similar to a for-loop in =C=.
+
+#+BEGIN_SRC wisp
+do : : i 1 : 1+ i
+   : > i 4
+   display i
+#+END_SRC
+
+/Note: Almost no schemer uses this./
+
+****** While
+
+Looping with while is sometimes seen, but similar to do-loops mostly superceded by more elegant constructs.
+
+#+BEGIN_SRC wisp
+let : : i 1
+  while : < i 5
+          display i
+          set! i : 1+ i
+#+END_SRC
+
+****** Let-recursion
+
+Also called named let: looping via explicit recursion. Among other possibilities, let-recursion can easily be used instead of =do= or =while= loops.
+
+#+BEGIN_SRC wisp
+let loop
+  : i 1 ; the initial value
+  when : < i 5
+         display i
+         loop : 1+ i
+       
+#+END_SRC
+
+Even though let-recursion is a great tool, it has quite a bit of overhead for simple loops, and it requires shifting the mental model towards recursion. But as soon as the loop gets more complex than two or three lines, this overhead fades.
+
+****** Intuitive?
+
+These constructs are not really what I consider intuitive, but they are easy and not really bad. A looping construct I would consider as intuitive would be something like this:
+
+#+BEGIN_SRC wisp
+for : i in '(1 5 8)
+      display i
+#+END_SRC
+
+/(you can do that with a macro - people do: see the next chapter!)/
+
+On the other hand, I experienced let-recursion to be much easier to debug than any other kind of loop - so much easier, that I wrote an article about [[http://draketo.de/licht/freie-software/let-rekursion][the elegance of let-recursion]].[fn:15]
+
+And for this gain, I accept the slight loss in readability:
+
+#+BEGIN_SRC wisp
+let loop
+  : l '(1 5 8)
+  when : not : null? l
+       display : car l ; first element
+       loop : cdr l ; continue with rest
+#+END_SRC
+
+I can’t deny, though, that standard scheme-loops are still a long way from Python - especially in list-comprehensions:
+
+#+BEGIN_SRC python
+  names = [name for ids,name in results]
+#+END_SRC
+
+But the flexibility of scheme-syntax would definitely allow defining something which looks like the following:
+
+#+BEGIN_SRC wisp
+  define names : list-comp name for (ids name) in results
+#+END_SRC
+
+And I’m pretty sure that somewhere out there someone already defined a list-comp macro which does exactly that. Let’s see…
+
+***** Great Looping Constructs in Guile Scheme
+
+…and one question on IRC later ([[http://webchat.freenode.net?randomnick=1&channels=%23guile][\#guile @ irc.freenode.net]])[fn:16] I learned that I was right: [[http://srfi.schemers.org/srfi-42/srfi-42.html][SRFI-42 (eager comprehensions)]] offers list-comprehension while [[http://mumble.net/~campbell/scheme/foof-loop.txt][foof-loop]] provides the loop-macro.
+
+****** SRFI-42
+
+SRFI-42 allows using the compact representation from Pythons list-comprehensions:
+
+#+BEGIN_SRC wisp
+use-modules : srfi srfi-42
+list-ec (:range i 5) i ; [i for i in range(5)]
+; => (0 1 2 3 4)
+#+END_SRC
+
+****** foof-loop
+
+and foof-loop[fn:18] gives powerful looping, which starts simple
+
+#+BEGIN_SRC wisp
+  ;; this example needs foof-loop installed via guildhall!
+  ;; see https://github.com/ijp/guildhall/wiki/Getting-Started
+  loop : : for element : in-list list
+    display element
+#+END_SRC
+
+and becomes very, very powerful:
+
+#+BEGIN_SRC wisp
+  ;; this example needs foof-loop installed via guildhall!
+  ;; see https://github.com/ijp/guildhall/wiki/Getting-Started
+  loop 
+    : for x : in-list '(1 2 3)
+      with y 0 {y + {x * 2}}
+    . => y
+#+END_SRC
+
+****** apply/fold/map
+
+In addition to providing these explicit looping constructs, Scheme developers are far more likely to use functions like apply, fold and map for the same effect, often with an anonymous (lambda) function which replaces the loop body.
+
+**** Summary
+
+Guile Scheme with syntax extensions does not have to look up to Python when it comes to pseudocode. Scheme code can be very elegant, readable and intuitive. With the right extensions that even holds for loops. And both foof-loop and srfi-42 are more powerful looping-constructs than the default in Python. For example =list-ec (:real-range i 0 5 0.1) i= is equivalent to the numpy-enhanced range-function. And despite that power, their code looks almost as intuitive as Python-code.[fn:17]
+
+But they also come with lots of additional ways solve a problem. Which brings us to the next topic.
+
+*** One way to do it?
+
+So readability can be pretty good, but when it comes to canonical code, Scheme follows a very different path than Python. Instead of providing one best way to do something, Scheme is a tool for creating the language you need to solve your problem. This means, that while Scheme code can look much clearer than Python-code, it can at the same time be much harder to understand. When you program in Python, you’ll soon see patterns in the code, so you don’t actually read the full code. Rather you say “ah, yes, this is a future”. In Scheme on the other hand, every programmer can use different mechanisms for doing the same task.
+
+This sounds pretty harsh, and it warrants an example. For this, we’ll turn to [[http://dthompson.us/pages/software/sly.html][Sly]],[fn:19] a really nice game-engine in Guile Scheme, modelled partly after [[http://pyglet.org][pyglet]].
+
+Writing a movement pattern for a character in Sly looks very intuitive:
+
+#+BEGIN_SRC wisp
+use-modules : 2d agenda
+              2d coroutine
+              2d game
+
+coroutine
+  while #t
+    walk 'up
+    wait game-agenda 60
+    walk 'down
+    wait game-agenda 60
+#+END_SRC
+
+But when you try to understand what =coroutine= does, you have to look deep into the nexus of delimited continuations - and then mangle your mind some more to build the patterns used there. Let’s do that: We take one step into [[https://gitorious.org/guile-2d/guile-2d/source/342fbcffc1b17f03ae4b9f7de3caccc5e45da0f1:2d/coroutine.scm][coroutine.scm]].
+
+#+BEGIN_SRC wisp
+  define : call-with-coroutine thunk
+    . "Apply THUNK with a coroutine prompt."
+    define : handler cont callback . args
+      . "Handler for the prompt. 
+         Applies the callback 
+         to the continuation (cont) 
+         in a second prompt."
+      define : resume . args
+          . "Call continuation 
+             that resumes the procedure.
+             Uses the continuation 
+             from the handler."
+          call-with-prompt 'coroutine-prompt
+                lambda () : apply cont args
+                . handler
+      ; here the handler 
+      ; calls the callback with resume
+      when : procedure? callback
+          apply callback resume args
+    
+    ; finally call-with-coroutine 
+    ; calls the code (thunk).
+    call-with-prompt 'coroutine-prompt 
+                    . thunk handler
+
+  ; definition of the coroutine macro.
+  ; Enclodes the code in a function (lambda)
+  define-syntax-rule : coroutine body ...
+    . "Evaluate BODY as a coroutine."
+    call-with-coroutine : lambda () body ...
+#+END_SRC
+
+Firstoff: This really is the full definition of coroutines. 11 lines of concise code (not counting blank lines, docstrings and comments). From my experience with Python, I would say “this will be easy to understand”. Let’s try that - beginning with the macro =coroutine= at the bottom.
+
+#+BEGIN_SRC wisp
+  define-syntax-rule : coroutine body ...
+    . "Evaluate BODY as a coroutine."
+    call-with-coroutine : lambda () body ...
+#+END_SRC
+
+This one is still easy: If you call =coroutine=, it simply puts all the arguments you give it inside a lambda and passes it to =call-with-coroutine=. In python, you would do that by defining a function and passing the function around. So far, so nice. Now let’s get to the core and understand =call-with-coroutine=:
+
+#+BEGIN_SRC wisp
+  define : call-with-coroutine thunk
+    . "Apply THUNK with a coroutine prompt."
+    define : handler cont callback . args
+      . "Handler for the prompt. 
+         Applies the callback 
+         to the continuation (cont) 
+         in a second prompt."
+      define : resume . args
+          . "Call continuation 
+             that resumes the procedure.
+             Uses the continuation 
+             from the handler."
+          call-with-prompt 'coroutine-prompt
+                lambda () : apply cont args
+                . handler
+      ; here the handler 
+      ; calls the callback with resume
+      when : procedure? callback
+          apply callback resume args
+    
+    ; finally call-with-coroutine 
+    ; calls the code (thunk).
+    call-with-prompt 'coroutine-prompt 
+                    . thunk handler
+#+END_SRC
+
+So =call-with-coroutine= first defines the internal function =handler=. That handler gets the arguments =cont=, =callback= and args. It defines the internal function =resume=. When =resume= gets called, it uses =call-with-prompt=. This isn’t defined here: It uses continuations, which are something like a supercharged =yield= from Python. They allow stopping a function at any point and later resuming it from there - multiple times if needed. So this =handler= returns a function which can continue the control flow - conveniently called =resume=. And if I call a =coroutine=, I create code which can stop itself and give other functions a way to continue it where it stopped (getting from defining =resume= to passing it to other functions is a huge leap. You can read some more about this in the [[https://www.gnu.org/software/guile/manual/html_node/Prompts.html][chapter about =prompts=]] in the [[https://www.gnu.org/software/guile/manual/][Guile Reference Manual]]).
+
+I won’t go into further details of continuations here, because I cannot explain them in an easy way - it took me a few hours to actually figure out what this code does, and I still have problems wrapping my mind around all the details. The fundamental power of delimited continuations is so huge, that after I mostly understood what this code does, I wrote a short note to a fellow Science-Fiction RPG designer and told him, that the paranormal time-warping power we designed could be modelled completely with continuations and a diff-based memory implementation.
+
+But let’s finish this: On the outside, these 11 lines of code give you a way to define code you can step through - for example going one line at a time, and every step returns a function with which you can =resume= the function to run the next line.
+
+This is elegant. I cannot even get close to describing the extent of the elegance of this approach.
+
+But it requires me to wrap my mind around very complicated concepts to understand why the very simple code for the movement of a character works.[fn:2]
+
+If I were to use another library, it would likely provide a slightly different way to define coroutines. So I cannot easily build up patterns to quickly understand code. I have to actually read the code line-by-line and word-by-word. Then I must read up on the definition of the structures it uses. Only after doing this, I can begin to hack the code. And this is a problem for code-reuse and maintainability.
+
+And additionally most Scheme implementations provide slightly different base functionality.
+
+So on the grounds of providing one way to solve a problem, Scheme falls far short of Python. 
+
+Partly this is the price of Freedom for the Developer.
+
+But another part of this is simply, that the functionality in Scheme seems to be just a tiny bit too low-level. It does not expose a well-defined set of easy functionality to build programs. Instead it provides a set of very powerful tools to build languages - but the simple ways, which are the default in Python, are mostly missing -- or hidden within the wealth of low-level functionality. In the strive to provide the perfect environment to define languages, Scheme loses sight of the requirements for solving actual problems with code. It is a very elegant language for defining languages, but for solving actual problems, each library provides its own domain specific language, and that makes code harder to understand than needed.
+
+I do not see this as an unsolvable problem, but from the outside it looks like developers are happy with the situation: They have all the freedom they need, and they can ignore the rough edges. But those edges cut the hands of new users.
+
+Note, though, that every set of functions provides a kind of domain specific language, independent of the programming language you use. If you create a module in Python with functions for doing a given task, then the names of the functions and the arguments they form a language. But (to stay with the analogy) the shared vocabulary and grammar between those languages is much bigger in Python than in Scheme. Python-programmers mostly try to write conventional code: Code which looks just like the user expects it to look.
+
+And in Python, this is the easiest way to write code -- that is a part of the Zen of Python -- while in Scheme unconventional code is just as easy to write as conventional code.
+
+So in Scheme there is not /one way to do it/. There are countless ways, and most of them can be made to work similarly well.
+
+*** Planned Hackablility, but hard to discover…
+
+Similar to the many ways to do a task in Guile Scheme, there are big differences to Python, when it comes to hackability.
+
+Python exposes most of its inner workings via double-underscored attributes and functions. As such, almost every obscure possibility is available at all times, but never elegantly.
+
+Guile Scheme on the other hand provides explicit ways to change its inner workings, but does not give access to everything it could. Consequently, hacking Guile and hacking Python are two completely different things. We’ll go through a few examples to get a feeling for the different styles.
+
+**** Accessing variables inside modules
+
+As in Python, Guile Scheme allows you to access all toplevel variables in a module. Whether you only see exported variables or all of them is a matter of whether you use 'resolve-interface' or 'resolve-module'. When defining a module, you explicitely define which values are exported. In contrast, Python uses the convention that names starting with an underscore are not exported and all others are implicitly exported.
+
+To get a list of variables and functions in a module you can use dir:
+
+#+BEGIN_SRC python
+  import math
+  dir(math)
+#+END_SRC
+
+A rough equivalent in Guile Scheme is 
+
+#+BEGIN_SRC wisp
+  module-map 
+    lambda (sym var) sym ; return the symbol (key)
+    resolve-interface '(ice-9 popen)
+#+END_SRC
+
+Getting an exported binding (variable or function) directly can be done via =@=:
+
+#+BEGIN_SRC wisp
+define oip : @ (ice-9 popen) open-input-pipe
+#+END_SRC
+
+To get a non-exported binding, just use =@@= instead of =@=.
+
+If you want to get the bindings for a module referenced in some datastructure, =module-ref= might be more convenient:
+
+#+BEGIN_SRC wisp
+define oip
+  module-ref 
+    resolve-module '(ice-9 popen)
+    . 'open-input-pipe
+#+END_SRC
+
+**** Runtime Self-Introspection
+
+The title of this part is a fancy name for “getting implementation details at runtime which a clean system should not need but which many people use anyway”. For example for locating image-files which are stored in a path relative to the script-file (which is evil if the program gets installed cleanly, but can come in handy during development and for deploy-by-dropping-a-folder-somewhere).
+
+***** A file as module and script
+
+In Python, you can always check whether a file was imported as module or started as script by checking for =__name__=. If that is =__main__=, then the script is the file the user executed. And you can retrieve the filename of a module with the magic attribute =__file__=.
+
+#+BEGIN_SRC python
+if __name__ == "__main__":
+    print "you executed", __file__
+#+END_SRC
+
+In Scheme you do not use magic attributes as in python, but you have several ways to achieve the same.
+
+You can explicitely check the command-line arguments for running code only when the file is called as script. This example is not yet perfect, but it does its job as long as you do not reuse the filename of modules you use in other parts of the load path. Note that for this part I switch back from Wisp to Scheme (with parens), because this makes it easier to discuss the code with scheme-hackers (and I’m pretty far out of my zone of expertise, so this is important).
+
+#+BEGIN_SRC scheme
+  (define (my-local-main)
+    (display "I am just a dummy, why do you call me?"))
+  (let ((my-local-name (module-filename
+                        (program-module my-local-main))))
+     ; catch the case when the compiler
+     ; optimized away the info.
+    (when (or (not my-local-name)
+              (string-suffix? (car (command-line))
+                              my-local-name))
+      (display "you executed this as script.")))
+
+#+END_SRC
+
+The limitation not to repeat a filename is a serious one, though: Do NOT use this code in production. It is here to show feature parity by taking a similar approach. Luckily there are safer solutions.
+
+If you know the location of your guile interpreter, you can use the [[https://www.gnu.org/software/guile/manual/html_node/The-Meta-Switch.html][meta-switch]]. This is very useful for local development and for distributions, but it does not work if you need to use =#!/usr/bin/env guile= as the hashbang to make your script more portable (the meta-switch is something which is direly missing in env - even GNU env).
+
+As simpler alternative, you can run any file from guile as a script instead of importing it as module: just call it with =guile -e main -s scriptfile.scm=. This misses the use-case by a fine margin, because it moves part of the running logic outside the script file, but it shows the way towards the most versatile solution in Guile:
+
+Just use a hashbang for a shell script which contains the information how to run the module as script. This is possible because in guile-scheme =#!= starts a comment which lasts up to =!#=, so when the shell re-runs the file with guile, guile will ignore the shell-part of the file.
+
+#+name: runscript-shell
+#+BEGIN_SRC sh
+  #!/bin/sh
+  # -*- scheme -*-
+  exec guile -e main -s "$0" "$@"
+  # Thanks to exec, the following lines 
+  # are never seen by the shell.
+  !#
+  (define (main args)
+    (display "Horaay!\n"))
+#+END_SRC
+
+And this is technical elegance in its raw form: Interaction of different parts of the system to form something much greater than its parts by generalizing an already existing special case (the hash-bang as starting a multiline-comment). I pull my hat before whoever discovered and realized this solution.
+
+If you want to use this in a module, you need to call the main from the module:
+
+#+name: runscript-shell-module
+#+BEGIN_SRC sh
+  #!/bin/sh
+  # -*- scheme -*-
+  exec guile -e '(@ (py2guile runscript) main)' -s "$0" "$@"
+  # use @@ if your module does not export main
+  !#
+  (define-module (py2guile runscript) 
+                  #:export (main))
+  (define (main args)
+    (display "Horaay! Module! Horaay!\n"))
+#+END_SRC
+
+Using this with Wisp requires some additional arguments to add the wisp directory to the load path:
+
+#+name: runscript-shell-module-wisp
+#+BEGIN_SRC sh
+  #!/bin/sh
+  # -*- wisp -*-
+  exec guile -L $(dirname $(dirname $(realpath "$0"))) \
+       --language=wisp -e '(@ (py2guile runscript) main)' \
+       -s "$0" "$@"
+  # use @@ if your module does not export main
+  ; !#
+  define-module : py2guile runscript
+                . #:export (main)
+  define : main args
+    display "Horaay! Module! Horaay!\n"
+#+END_SRC
+
+To estimate the overhead of running a shell-script and then deferring to guile, I compared this script to a script started with =env= and a script which uses the meta-trick:
+
+#+name: runscript-env
+#+BEGIN_SRC scheme :export code
+#!/usr/bin/env guile
+!#
+(define (main args)
+  (display "Horaay!\n"))
+(main 1)
+#+END_SRC
+
+#+name: runscript-meta
+#+BEGIN_SRC scheme :export code
+#!/usr/bin/guile \
+-e main -s 
+!#
+(define (main args)
+  (display "Horaay!\n"))
+#+END_SRC
+
+As final test I added a script which used dash as shell instead of bash (by replacing =/bin/sh= with =/bin/dash=). 
+
+I then ran the scripts with a simple for-loop:
+
+#+BEGIN_SRC sh
+  for script in runscript-shell.scm runscript-dash.scm \
+                runscript-env.scm runscript-meta.scm; do 
+      echo $script; ./${script} >/dev/null;
+      time for i in {1..1000}; do 
+         ./${script} >/dev/null;
+      done;
+  done
+#+END_SRC
+
+The runtimes for 1000 runs were 20-24s when deferring to shell, 20-24s when using dash, 18-20s when calling the script via env and 17-19s when using the meta-switch. So the overhead for running via the shell is about 3-4ms - which I would call mostly negligible given that the Python equivalent of this script requires 19-23ms, too.
+
+One problem could be that the startup time for the shell method is a bit unstable: On some runs it jumps up to 30ms. To check that, we can look at the average value and the standard deviation and range in 1000 runs:[fn:6]
+
+#+BEGIN_SRC sh exports none
+  for script in runscript-shell.scm runscript-dash.scm \
+                runscript-env.scm runscript-meta.scm; do 
+      echo real $script; ./${script} >/dev/null; 
+      for i in {1..1000}; do 
+          time ./${script} >/dev/null; 
+      done;
+  done 2>&1 | grep real | sed "s/.*0m.*\\.0//" | sed s/s$//
+#+END_SRC
+
+- shell-deferring: \( 23.2 \pm 1.9 \) ms (range from 14ms to 29ms)
+- dash: \( 22.7 \pm 2.5 \) ms (range from 14ms to 27ms)
+- env: \( 22.3 \pm 2.8 \) ms (range from 13ms to 26ms)
+- meta-trick: \( 19.7 \pm 2.8 \) ms (range from 13ms to 19ms)
+- python (with =if __name__...=): \( 22.0 \pm 1.8 \) ms (range from 18ms to 26ms)
+
+These numbers are with guile 2.0.11 on a 64bit machine with a standard rotating disk (no SSD). They show that the larger spread is due to rare outliers.
+
+I guess that the additional spread of the startup times when using the shell-deferring is due to filesystem-access and caching, but I did not trace it further. The additional 3ms of the average time with shell-deferring is just the startup time of bash when started from bash via =bash -c true=.
+
+So on average using the feature-equal method to call a script in Guile Scheme (shell-deferring) is just as fast as the equivalent method in Python. But there are ways to decrease the startup time if you have additional information about the system. 
+
+Practical Hint (as far as I understand it): If you are a distribution maintainer, and you see shell-deferring in Guile scripts, you can speed them up with the meta-trick. But if you are a developer and you want to make your script as portable as possible, your best bet is shell-deferring. This is also what =guild= uses to create executable guile-modules, so it is very unlikely that something will break this behaviour.
+
+For larger projects you’d be better off with defining a script-runner which runs functions imported via =(@@ (package module) function)=. A script-runner with some error information would be the following script:
+
+#+name: script-runner
+#+BEGIN_SRC scheme :export code
+  #!/usr/bin/env guile
+  -*- scheme -*-
+  !#
+  ; This code will run the main function of the file it is given 
+  ; as argument. This keeps the testing logic inside the project 
+  ; while keeping the overhead for each module to a minimum. 
+  ; Thanks to Mark Weaver for this code!
+  (use-modules (ice-9 match))
+
+  (match (command-line)
+    ((_ file args ...)
+     (primitive-load file)
+     (let ((main (module-ref (current-module) 'main)))
+       (main args)))
+    ((cmd . _)
+     (format (current-error-port)
+             "Usage: ~a FILE [ARGS ...]\n"
+             (basename cmd))))
+#+END_SRC
+
+For small projects, however, like short utility scripts,
+shell-deferring gives you most flexibility.
+
+***** Run script via shell-deferring
+
+#+name: runscript-shell-module-wisp2
+#+BEGIN_SRC sh
+  #!/bin/sh
+  # -*- wisp -*-
+  exec guile -L $(dirname $(dirname $(realpath "$0"))) \
+       --language=wisp -e '(@ (py2guile runscript) main)' \
+       -s "$0" "$@"
+  # use @@ if your module does not export main
+  ; !#
+  define-module : py2guile runscript
+                . #:export (main)
+  define : main args
+    display "Running you Module!\n"
+#+END_SRC
+
+
+***** Where am I?
+
+A more complex example asks, in which file a function I am using is defined. In Python, this works roughly like this:
+
+#+BEGIN_SRC python
+from math import log
+log.__module__ # it is math
+import math
+print math.__file__ 
+# this code prints /usr/lib/python2.7/lib-dynload/math.so
+#+END_SRC
+
+or rather
+
+#+BEGIN_SRC python
+from math import log
+print __import__(log.__module__).__file__
+# this code prints /usr/lib/python2.7/lib-dynload/math.so
+#+END_SRC
+
+In Guile Scheme I would achieve the same effect with this:
+
+#+BEGIN_SRC wisp
+use-modules : system vm program
+              (ice-9 popen) #:select : open-input-pipe
+; then regain the module path
+display : module-filename : program-module open-input-pipe
+newline ; this code prints ice-9/popen.scm
+#+END_SRC
+
+To find the absolute path, you need to search =%load-path= for the file-path (a variable holding the list of the load path). For example you could it like this:
+
+#+BEGIN_SRC wisp
+  map 
+    lambda : x ; lambda is an anonymous function. 
+               ; In code you can also use the lambda-symbol, 
+               ; but it breaks my latex export.
+        let*
+         : sep file-name-separator-string
+           path : string-join (list x "ice-9/popen.scm") sep
+         if : file-exists? path
+            . path
+    . %load-path
+#+END_SRC
+
+Some more information on this is available in the [[https://github.com/NalaGinrut/nala-repl/blob/master/nala/src.scm][nala-repl interpreter hacks]].[fn:27]
+
+For using command-line arguments and such, have a look at [[http://www.gnu.org/software/guile/manual/html_node/Guile-Scripting.html#Guile-Scripting][Guile-Scripting]].[fn:28]
+
+As you can see in the example, the python-versions often look more hacky, but they are shorter. Yet a big difference between both is that in Guile Scheme you could add syntactic sugar yourself to make this nicer. And that’s where we now come to.
+
+**** freedom: changing the syntax is the same as regular programming
+
+The following shows an example for checking whether the file was called itself. Made easy. Using syntax macros, it replaces =if __name__...= from python with a block within =((in=m ...))=.
+
+/This example illustrates the power you get from tweaking the syntax in Scheme, but it is not a perfect clone: If you repeat a filepath in another part of the load path, the code will be run. I consider that a minor issue, because repeating the file path is also a toxic case in Python. In Python it would result in replacing a loadable module, potentially wreaking havoc on many other programs. If you find yourself tempted to use this example for creating scripts which also serve as modules, please turn to the safer ways shown in the previous section: The *meta-trick*, if you know the location of the guile-interpreter, or *shell-deferring* (env on steroids) if you want to be as portable as possible. Guile Scheme is not Python, so some tasks are done differently - often in a more versatile way.[fn:31]/
+
+#+BEGIN_SRC scheme :export code
+    ; define the module
+    (define-module (inm)
+      #:export (inm in=m))
+
+    ; get introspection capabilities
+    (use-modules (system vm program))
+    ; define a syntax rule.
+    (define-syntax-rule (in=m body ...)
+      (lambda ()
+        (define (my-local-main)
+          (display "I am just a dummy, why do you call me?"))
+        (let ((my-local-name 
+               (module-filename (program-module my-local-main))))
+      (when (or (not my-local-name) ; catch the case 
+                                    ; when the compiler
+                                    ; optimized away the info.
+                (string-suffix? (car (command-line)) my-local-name))
+             (begin body ...)))))
+    ; the lambda is executed here, not in the macro!
+    ((in=m (display "you executed inm.scm as script")
+           (newline)))
+#+END_SRC
+
+From another module:
+
+#+BEGIN_SRC scheme
+(define-module (in))
+
+(use-modules (inm))
+((in=m (display "in.scm")))
+#+END_SRC
+
+it is not triggered when importing this in yet another file.
+
+#+BEGIN_SRC scheme
+(use-modules (in))
+#+END_SRC
+
+Note that doing stuff like this is seen as normal programming in Guile Scheme, while it is seen as hacky in Python. The scope of hack and expected usage differs between Python and Guile Scheme.
+
+Extending the syntax of your language to better suit your problem space is a core feature of Guile Scheme.
+
+**** Discovering starting points for hacking
+
+So far my tries to change something which isn’t in the explicitely supported adaptions weren’t as successful as I had expected. But I’m comparing several years of intense experimenting with Python to experimenting with Guile Scheme now-and-then, so all I can say is: discovering starting points for doing something which the main developers did not anticipate requires a different approach than in Python. When searching what I can do, I’m used to simply dropping to the Python shell, typing the variable with a trailing period and hitting tab to let GNU readline completion do the rest. Since Scheme does not give access to the namespace content via the dot-syntax, I cannot use this here.
+
+The approach which currently works for me with Guile Scheme is just asking on IRC, but that does not scale to a quickly growing userbase (when the number of users grows much faster than the number of experts).
+
+One of the things you should definitely do when starting with Guile is getting familiar with [[http://www.gnu.org/software/texinfo/manual/info/info.html#Top][GNU Info]] - either the standalone reader (just type =info= in a shell) or better still the info-mode in emacs (invoked with =C-h i=). Then just go to the guile topic (hit =m=, then type =Guile Reference=) and do a full-text search with =ctrl-s <search text> ctrl-s ctrl-s= (repeating =ctrl-s= tells info to search all subtopics). That lessens the need to ask a lot.
+
+If you want to use a search engine, add “Guile Scheme” as identifier. “Guile” often gets the character from the Street Fighter game series and “Scheme” gets anything from URL schemes to business processes, but not how to use them /in Scheme/.
+
+*** Batteries and Bindings: FFI
+
+The Batteries and Bindings of Guile are generally weaker than those of Python. To mitigate this a bit, Guile provides a simple way to call libraries written in C: The Foreign Function Interface (FFI).
+
+With this I can wrap a library into a Scheme-module so it appears like a native tool. To investigate, I tested the simplest case of wrapping a library I’ll really need: netCDF4.
+
+#+BEGIN_SRC wisp
+  use-modules : system foreign
+  ; load the netcdf library.
+  define libnetcdf : dynamic-link "libnetcdf"
+  ; get the function to inquire the netcdf version.
+  define nc_inq_libvers 
+      pointer->procedure 
+        .  '* ; returns a pointer to a char-array.
+        dynamic-func "nc_inq_libvers" libnetcdf 
+        list ; takes no arguments (empty list)
+  
+  ; test the foreign function 
+  ; and convert the returned char-array to a string.
+  pointer->string : nc_inq_libvers
+  ; => "4.1.1 of Jul  1 2013 03:15:04"
+#+END_SRC
+
+So I can wrap a library without too much effort. As seen in the example, wrapping a simple function can be done in just 7 short lines of code.
+
+The Guile manual provides important resources for working with FFI:
+
+- [[https://www.gnu.org/software/guile/manual/html_node/Foreign-Functions.html][Foreign Functions]]
+- [[https://www.gnu.org/software/guile/manual/html_node/Void-Pointers-and-Byte-Access.html#Void-Pointers-and-Byte-Access][Void Pointers and Byte Access]]
+
+It leaves quite a few open questions, though:
+
+- Can I wrap fortran? equivalent to [[http://www.f2py.com/][f2py]]? [[http://fwrap.sourceforge.net/][fwrap]] to wrap fortran in C and call it? Use Fortran [[http://gcc.gnu.org/onlinedocs/gfortran/Interoperability-with-C.html][Interoperability with C]] / [[http://www.fortran90.org/src/best-practices.html#interfacing-with-c][Interfacing with C]]?
+- How good is its Performance? bytevectors for direct memory access?
+- How to wrap other languages? Is there something equivalent to [[https://wiki.python.org/moin/IntegratingPythonWithOtherLanguages][Integrating Python with other languages]]? Or [[http://docs.scipy.org/doc/numpy/user/c-info.python-as-glue.html][Using Python as Glue]] (ctypes should be equivalent to FFI)?
+
+So while not being too complex, this is also not really painless. Guile provides the basic tools which could give it quite as many batteries as Python. With bytevectors for memory-access, it could have something similar to numpy. But to get closer to that, it would need a common API for interfacing with big C-arrays. An API which keeps the C-arrays as reference (for example using methods described in the Guile manual under [[http://www.gnu.org/software/guile/manual/html_node/Accessing-Arrays-from-C.html#Accessing-Arrays-from-C][Accessing Arrays from C]]), so they can easily be passed to libraries and returned from foreign functions with negligible runtime cost and which provides easy ways of slicing and mathematical operations (like numpy).
+
+If every GNU library provided a Schemish interface for Guile, that would go a good way towards providing powerful batteries - especially because GNU already provides powerful mathematic libraries. So the basics are in place, but Guile will need a lot of good and hard work to reach the state of Python. And that means more exposure to programmers who use Guile for real work and complain about the remaining unpolished corners.
+
+To realize a consistent way for accessing foreign libraries, this also needs a definition of what constitutes Schemish code. Most Guile developers follow the guidelines in [[http://mumble.net/~campbell/scheme/style.txt][Riastradh's Lisp Style Rules]],[fn:25] as well as code examples from [[http://gnu.org/s/guix][GNU Guix]].[fn:29]
+
+On the other hand, the FFI interface already looks similarly elegant as interfaces written in [[http://cython.org/][cython]], but without the need to compile it.
+
+*** Does it scale up?
+
+I cannot yet say whether Guile scales up for certain, because the scaling will only show after prolonged usage.
+
+But I already found some information which suggests scaling properties of Guile.
+
+**** Basic impression
+
+I miss the namespace-by-default from Python, though I can add namespaces to modules and import only specific bindings. For bigger projects, I can just write my own import wrapper which adds namespaces by default - and the same goes for almost any other limitation of Guile Scheme. But every change will make it harder for newcomers to understand the code.
+
+On the other hand, code using let-recursion [[http://draketo.de/light/english/recursion-wins][should scale much better than for-loops]], because it makes it easier to extract parts of the loop. Let’s look at some specifics.
+
+**** Positional arguments and keyword arguments
+Different from Python, an argument in GNU Guile can either be a required positional argument, an optional positional argument or a keyword-argument, but not several at the same time.
+
+#+BEGIN_SRC wisp
+  use-modules : ice-9 optargs
+  define* 
+      example required1 
+            . #:optional opt1 (opt2 'opt2default) 
+            ; optional must come before #:key!
+            . #:key named1 (named2 'named2default) 
+            . . rest
+      display 
+          list 'required1: required1 
+               . 'opt1: opt1 'opt2: opt2 
+               . 'named1: named1 'named2: named2 
+               . 'rest: rest
+
+  example 'foo #:named2 'bar 'baz
+  newline ; prints (required1: foo opt1: #f opt2: opt2default 
+          ;         named1: #f named2: bar 
+          ;         rest: (#:named2 bar baz))
+#+END_SRC
+
+In Python, positional arguments always double as keyword-arguments, so a user of a library can explicitly state in a function call which meaning the different passed arguments will have, but there are no optional positional arguments without default value (in Guile those default to =#f=). This makes it very easy to call functions in a readily understandable way. On the other hand, this means that Python makes the function-internal names of positional arguments part of the exposed API of the function. Changing them means changing the API -- and as such potentially breaking external code.
+
+So I cannot decide which of these approaches is better for scaling. Python seems more convenient for the user of libraries and makes it easier to transition from positional arguments to keyword-arguments when the function signature becomes unwieldy. But locking the names of positional arguments into the API also means that a programmer can never change these names to suit changes in the implementation of the function.
+
+So in terms of function-arguments, Python and Guile Scheme make different tradeoffs, but I cannot decide which approach will be better in the long run.
+
+Note that =(define* (func #:key foo . rest) ...)= puts the keywords in the list =rest= (in addition to providing them as variables) instead of using a dictionary of keyword-value pairs and a list, so it can require additional parsing. I think this could benefit from some polish.
+
+**** Different ways to import modules
+
+When it comes to importing, though, the difference is clearer. GNU Guile offers quite a few different ways of importing modules, while Python sticks to a few default ways.
+
+If you follow the default way[fn:8], Guile gets all bindings without namespace. This is not what I would want, given my experience from Python, but since C does it the same way with #include, it’s clear that this does not make it impossible to scale up. Just a bit inconvenient.
+
+#+BEGIN_SRC wisp
+use-modules : ice-9 popen
+#+END_SRC
+
+To make it clear where the bindings in a given module come from, I can import modules with a namespace. This uses the general renamer keyword and I consider it as much more useful than the default way. Note that I can use any prefix, so I could even unite the bindings from several modules under a common prefix. This would defeat the purpose for me (finding the file from which the bindings originate by looking at the prefix), but Guile Scheme makes it possible and quite easy.
+
+#+BEGIN_SRC wisp
+use-modules 
+  : ice-9 popen
+    . #:renamer : symbol-prefix-proc 'popen-
+#+END_SRC
+
+To make the common case of prefixing easier, there’s also a dedicated prefix option:
+
+#+BEGIN_SRC wisp
+use-modules 
+  : ice-9 popen
+    . #:prefix popen-
+#+END_SRC
+
+Also I can restrict the import to specific bindings and rename them individually:
+
+#+BEGIN_SRC wisp
+use-modules
+  : ice-9 popen
+    . #:select : (open-pipe . pipe-open) close-pipe
+#+END_SRC
+
+And naturally these methods can all be combined.
+
+These methods can mirror all the possibilities from Python and then a few more, but the default way is less suited for scaling up, because it litters the namespace with all the exported functions from imported modules without any prefix. Due to this choice, finding the origin of a binding requires either IDE support, checking at runtime or looking into all imported modules.
+
+On the other hand, Guile encourages exporting only selected functions from a module as explicit API, and it allows mixing several modules under the same prefix -- a capability which Python only made default in 2012 (version 3.3) as “implicit namespace packages” (PEP-340) which added a complexity to the import process which kills my usecase of simply deriving the module filename from the module name.
+
+But still I would wish for a default which adds the name of the module to all imported bindings. On the upside, with Guile it is possible to add this default myself on a per-project basis.
+
+**** identifier-syntax: getters and setters for variables
+
+Guile Scheme provides [[https://www.gnu.org/software/guile/manual/html_node/Identifier-Macros.html#index-identifier_002dsyntax-1][identifier-syntax]] which works like Python
+properties: simple variables to which I can later add getters and
+setters, one of the big scalability assets of Python.
+
+This does not (yet?) work with Wisp because that adapts the reader,
+but if you use parenthesized Scheme, you can do this:
+
+#+BEGIN_SRC scheme
+(define y 5)
+(define-syntax x
+  (identifier-syntax (var y)
+                     ((set! var val)
+                      (set! y (+ 1 val)))))
+(write x) ; -> 5
+(set! x 5) 
+(write x) ; -> 6!
+#+END_SRC
+
+This enables you to define an API with the simple variable =x= and if
+you later want to add constraints on the values of =x= or retrieve the
+value from some datastructure or hidden variable, you can easily do so
+without changing the exposed API.
+
+**** Adapting the syntax to the problem
+
+With [[https://www.gnu.org/software/guile/manual/html_node/Macros.html#Macros][Macros]], Guile allows adapting most aspects of the language to the task at hand. For small projects, this can provide a solid core of tools which make programming more enjoyable. While the project is small, these serve as syntactic sugar for convenience.
+
+When the project grows however, the impact of these tools can become much bigger, as they allow cutting unnecessary overhead at every step.
+
+If they are well-designed, they can make it much easier to scale a project from hobby-tinkering to production quality.
+
+When the project I wrote for evaluation in my PhD thesis grew beyond its initial scope I had to turn to very dark corners of Python to keep it maintainable. And despite the elegance of their design, even great web frameworks like django always expose a certain degree of ugliness as they struggle to realize their goals in the constraints of Python (though in my still limited experience this is much, much worse with C-based projects). I’ll call these constraints warts - similar to the usage of that term in the Python-community when it comes to the core-language.
+
+With Guile it is possible to avoid most of these warts, because the basic constraints of its syntax are much smaller than the constraints of Python.
+
+On the other hand, this makes the design of macros more challenging, because they can affect everything you do, and badly designed macros can create much more ugliness than allowing the warts of Python to creep in. So while the macros should make it much easier to scale a project written in Guile than to scale a project written in Python, it can make more sense to rely on standard syntax in the beginning and only start playing with macros when you gathered experience with the requirements of your project. But then, to learn using macros effectively, you have to experiment with them - which is a bit of a catch-22. If you’re interested in all the nifty tricks you can do with macros and syntax-transformation, it might therefore be best to start with a [[http://chimera.labs.oreilly.com/books/1234000001813/ch05.html#breakable_toys][breakable toy]].[fn:20]
+
+**** Good practice is needed! (but not enforced)
+
+As you can see from all the different ways to import bindings and to generally tackle problems in Guile Scheme, good practice becomes much more important than in Python. While in Python you say 
+
+#+BEGIN_QUOTE
+/“Don’t use =from os import *= ”/ 
+— Good practice with Python
+#+END_QUOTE
+
+Guile-using development teams have to give clear code-guidelines to get a consistent codebase.
+
+On the other hand, you can experiment with better ways to work and move programming paradigms forward without having to invent your own new language from scratch.
+
+With this, Guile Scheme allows you to make code-structures scale which do not scale well in Python.
+
+*** Summary
+
+A first look at Guile Scheme through the lens of the strengths of Python shows a much less polished language. Instead of having one easy way to do something, every developer can take his or her own path, making it harder to understand code from your fellows, and where Python greets the beginning programmer with readily accessible default structures, Scheme exposes minimal features which beg to be extended, while many advanced but easily understandable structures are hidden in modules people have to find before they can use them.
+
+On hackability Python actually makes it easier than Guile Scheme to find ways for hacking on deep concepts by simply using autocompletion in the shell -- and with very nice documentation -- but when we look at the reasons why such hacks are used, Scheme becomes far easier, because many of the actions which feel like hacks in Python are cleanly integrated in Guile Scheme, or can be realized using only core functionality.
+
+Following the lifecycle of a program also looks more feasible in Scheme, though I guess that it requires deviating from the simplest way of doing something. When programs get bigger, the syntax-adjustments in Scheme should start to pay off more and more, though these require discipline from the programmers to avoid locking themselves into a bubble of language concepts which are alien to newcomers.
+
+Similarly while Guile provides fewer batteries, it is possible to build more batteries with the simple Foreign Function Interface (FFI). With this method, wrapping a library is about as convenient as doing the same with cython. I did not find a similarly powerful and consistent interface as the one which numpy provides to access numerical datasets in Python, though bytevectors might provide a good base to start. All the basics seem to be in place, but they need lots of solid work to get close to Python in terms of directly usable and consistent bindings.
+
+In terms of executable pseudocode, Scheme shines (at least after taking care of the parens). Some of its names seem unintuitive to me, but its very consistent and easy structure makes it even more accessible than Python - especially for people who do not come with a huge can of preconceptions from C-like languages. This is enhanced when using the curly-infix extension (SRFI-105) which allows using regular infix notation for mathematics.
+
+After that initial very good impression, the ride gets a little bumpy with unusual naming and some really mindbending features, until the advanced capabilities of Scheme come into bearing and allow clean and simple solutions to challenges which in Python require ugly hacks.
+
+But before we go into these neat solutions and take programming beyond Python, there are some dark places to visit.
+** Guile Scheme Shortcomings
+
+Guile Scheme is a solid language, and it can compete quite well with Python, even in the areas where Python is strongest. But there are some dark corners I did not mention yet. Here I will explore the worst shortcomings I found in Guile Scheme.
+
+*** creating languages /and/ solving problems
+
+As written in [[*One%20way%20to%20do%20it?][One way to do it?]], Guile Scheme is harder for newcomers than Python. And I think I can see (part of) the reason for that.
+
+Different from Python, which is clearly focussed on solving problems, Guile Scheme has a dual focus: Creating new language structures and solving problems with the same language. And from my current experience, the focus on creating languages is stronger than the focus on solving problems.
+
+This leads to a mix of high-level and very low-level operations and less than ideal naming of functions.
+
+Guile Scheme is a wonderful ontology which encodes the common tasks for creating new language structures, but its structures for solving general problems are ripe with inelegancies like using the name =list-ec= (collect into a list) for list comprehensions or =in-list= for looping over a list instead of simply using =in=.
+
+To get this polished, it will need lots of real life usage to straighten out rough edges and find which convenience functions are needed in practical work.
+
+What I am also missing which could make this much easier is a guide which combines the most elegant structures in Guile Scheme into a canonical way to solve problems. It is possible that it already exists, but I did not see it yet - and such a guide should be the first point of contact for a new Schemer.
+
+*** car and cdr: Implementation details in the language
+
+Similar as with =list-ec= and =in-list=, implementation details creep into high-level Scheme code at many points. The most visible example are =car= and =cdr= (read as “coulder”).
+
+=car= and =cdr= are used in Scheme for accessing the head and the tail of a list (and some other data structures), and while their use quickly becomes second nature (because they are used all the time in recursion), their meaning is completely opaque to newcomers.
+
+Let’s show that with the example of =rember= (remove member) from the book The Little Schemer[fn:3][fn:37] (slightly adjusted to make it accessible without context):
+
+#+BEGIN_SRC wisp
+  define : rember a l
+      cond
+         : null? l
+           quote ()
+         : equal? (car l) a
+           cdr l
+         else
+           cons : car l
+                  rember a : cdr l
+#+END_SRC
+
+This function walks through the list =lat= and removes the first occurrence of =a=.
+
+Compare this to the same function using =first= and =rest=:
+
+#+BEGIN_SRC wisp
+  define : rember a l
+      cond
+         : null? l
+           quote ()
+         : equal? (first l) a
+           rest l
+         else
+           cons : first l
+                  rember a : rest l
+#+END_SRC
+
+# TODO: head/tail instead of first/rest?
+
+So why are =car= and =cdr= used instead of more speaking names? The origin of their names lies in early machine language:
+
+- car: Contents of the Address part of Register number
+- cdr: Contents of the Decrement part of Register number
+
+So their use began as an implementation detail.
+
+According to Wikipedia, they continue being used, because their structure makes it easy to define visually similar functions for multiple applications. For example =caar= is the first element of the first element of a list =(car (car l))=, =cadr= is the second element in a list =(car (cdr l))=, and =cddr= is the tail of the list beginning with the 3rd element =(cdr (cdr l))=.[fn:4]
+
+And from my own experience with The Little Schemer, =car= and =cdr= quickly become something like invocations - an integral part of the “sound” of the code. That doesn’t make them less opaque to newcomers, though.
+
+A partial solution to the more speaking names is using =srfi-1=, which provides first, second, third, and so forth - alternatives to car, cadr and caddr. It does not have an equally simple alternative to cdr, though. You have to use the 2-argument function =(drop list i)=, which returns all but the first =i= elements from the list. It would be trivial to define a =drop-first= function which is equivalent to =cdr=, but this is not part of the =srfi-1=, and consequently you have to define it yourself for each project or stick to =cdr=.
+
+To also replace =caar=, =cadr= and =cddr=, Guile provides a more flexible alternative in the match-module via [[http://www.gnu.org/software/guile/manual/html_node/Pattern-Matching.html][Pattern Matching]].
+
+#+BEGIN_SRC wisp
+  use-modules : ice-9 match
+  define l '(1 2 3)
+  match l
+      : first rest ...
+        . first
+  ; => 1
+#+END_SRC
+
+#+BEGIN_SRC wisp
+  use-modules : ice-9 match
+  define l '(1 2 3)
+  match l
+      : car cadr caddr 
+        . cadr
+  ; => 2
+  match l
+      : car cdr ...
+        . cdr
+  ; => (2 3)
+  match '(1 (11 12) 2)
+      : car (caadr cadadr) caddr ...
+        . cadadr
+  ; => 12  
+#+END_SRC
+
+Or, for that matter:
+
+#+BEGIN_SRC wisp
+  use-modules : ice-9 match
+  define l '(1 2 3)
+  match l 
+      : fubbly dubbly duh
+        . fubbly
+  ; => 1
+#+END_SRC
+
+In parenthesized scheme, match-usage looks like this (included here to make it easy to recognize when you see it):
+
+#+BEGIN_SRC scheme
+  (use-modules (ice-9 match))
+  (match '(1 2 3) 
+    ((car cadr caddr) 
+     cadr))
+     ; => 2
+  (match '(1 2 3) 
+    ((car cadr cddr ...)
+     cddr))
+    ; => '(3)
+#+END_SRC
+
+In general this is not what I would call simple, but it is explicit - and it follows the common theme of being much more powerful than anything I had imagined.
+
+As in other areas, Guile Scheme provides the features I need to easily define my own language while slightly missing the sweet spot for solving common problems. It creates the tools needed to squarely hit the sweet spot, but then does not utilize this power to provide the last 10% of polish for problem-solving.
+
+*** Inconsistency, overhead, duplication
+
+And this missing polish is visible in quite a few other areas, too. From my current impression, Guile Scheme is a language of power and necessity, but when it comes to convenient usage, it has quite a few rough corners.
+
+This starts with inconsistent ordering of function arguments, shows up in duplication of functionality for different types and leads to overhead in the function specification to make it usable for multiple usecases.
+
+For example =string-index s char_pred= searches for the second argument within the first, while  =string-prefix? s1 s2= checks whether the first argument is a prefix of the second.  Also =string-index= takes a character and not a string as second argument, while =is-a?= is used to ask =is-a? 0 <number>=, but not in the ordering =is-a? <number> 0= which would sound more like a typical sentence.
+
+And the duplication shows in =length= and =string-length=:  =length= gives the length of a list, but to operate on a string, you have to use =string-length=, even though Guile with GOOPS (the Guile Object Oriented Programming System) is perfectly capable of matching different implementations for different types to the same name. 
+
+Finally the overhead can be seen with =format=: Its first argument defines where the formatted string should be written, with =#f= saying that it should return a formatted string.
+
+At least the two later issues could easily be avoided. Adding generic behavior for length just requires 4 lines of code:
+
+#+BEGIN_SRC wisp
+use-modules : oop goops ; get goops functionality
+define-generic length ; allow specialization of length
+
+define-method : length (s <string>)
+    string-length s ; just reuse string-length
+; that's it. Now this works:
+length "123"
+; => 3
+#+END_SRC
+
+And using GOOPS, format could be crisp for the usual case (I’ll arbitrarily take that as returning a string) while providing all flexibility for the general case:
+
+#+BEGIN_SRC wisp
+use-modules : oop goops
+define-generic format
+define-method : format (s <string>) . rest
+                apply format #f s rest
+
+#+END_SRC
+
+This could be made nicer by adding the =destination= as a keyword argument, but =(ice-9 optargs)= does not define a =define-method*= with keyword argument parsing similar to =define*=.  Which is another case where inconsistency crept in.
+
+All of these are just minor stumbling blocks (and I am not the first to write about them: I recently found an article, where Mark Engelberg [[http://programming-puzzler.blogspot.de/2010/08/racket-vs-clojure.html][complained]][fn:38] about similar issues in Racket Scheme compared to Clojure). But they make Guile Scheme as a language feel less polished than Python.
+
+*** A common standard moves more slowly
+
+Some of the issues in Guile Scheme cannot be solved in Guile itself, because a big part of Guile Scheme is an implementation of the standardized Scheme language, which allows interoperability between different Schemes. This has the disadvantage, that is quite a bit harder to change than a language like Python which has one reference implementation that leads the language design, but it gives you the advantage that the skills you learn with one Scheme can readily be adapted for other Schemes, some of which support vastly different problem-domains, like creating tiny standalone binaries for embedded platforms.
+
+The shortcoming this creates compared to Python as language is that many parts of Guile Scheme do not use the advanced features within Guile to keep interoperability to other Scheme-implementations.
+
+Also it is harder to create a lean and elegant standard if this has to be a good fit for multiple implementations with different constraints and target groups. This is one more reason why the language-creation functionality which all the different Schemes need in the same way is top notch, while the problem-solving can be a bit cumbersome in comparison to Python.
+
+*** Distributing and Packaging to OSX and Windows
+
+Now we come to the darkest place in Guile development. There is no readymade plan for distributing programs using Guile Scheme to platforms without proper package manager.
+
+For Windows, there are patches for relocatable Guile modules, but these are not yet (as of version 2.0.11) part of the regular Guile install.
+
+Also there are no solutions to distributing games or similar artwork-rich programs which use Guile Scheme as implementation language instead of as extension language. David Thompson (davexunit) is working on that front with [[https://github.com/davexunit/sly][Sly]]. But easy distribution looks different.
+
+This also is a problem with Python, which tools like [[http://pyinstaller.org][PyInstaller]] only solve partially - for example PyInstaller still requires me to run OSX to create an installer for MacOSX - but with GNU Guile it is even more serious. While for Python the shared package repository [[https://pypi.python.org/pypi/][PyPI]] makes it very easy to share code with people who can run or modify some code, and most of its packages just work on any platform (which might explain its popularity with web developers and scientists), sharing code for GNU Guile still requires external infrastructure like guildhall,[fn:39] and using it on anything but GNU/Linux is an unsolved problem. 
+
+I cannot easily give Guile Scheme programs to people who do not use GNU/Linux, and even for those who do, a fast beta-cycle to non-developers will be hard to achieve.
+
+This could well be the worst shortcoming for my usecase. I’ll see how it goes, though. Making Wisp usable directly from the REPL was remarkably easy, so there might be similarly easy ways to enable quick testing which I just don’t know yet - if necessary by utilizing autotools (that’s what I do in Wisp).
+
+*** Summary
+
+Despite being nice to use most of the time, Guile Scheme has some
+severe shortcomings. Most of them stem from having a much broader
+focus than Python: not only on solving concrete problems, but also on
+tweaking the very core of Guile to make it better suited for the
+problem. This leads to a mix of primitive and sophisticated structures:
+there is an extremely flexible object oriented programming system with
+powerful module methods next to simplistic list modification
+structures. There is an efficient [[http://www.gnu.org/software/guile/manual/html_node/Foreign-Function-Interface.html#Foreign-Function-Interface][foreign function interface]] which
+allows calling into any C library, but distributing a program written
+in or with Guile to anything but a GNU/Linux system with a good
+package manager is a nightmare.
+And no best practices guide is to be found.
+
+Due to this, Guile Scheme is still quite a few steps away from
+reaching a point where I can wholeheartedly recommend it to people at
+my institute.
+
+For some of these points, there is limited flexibility due to keeping
+compatibility with Scheme code written for other implementations. But
+most of them can be overcome by lots of polishing and
+[[http://stevelosh.com/blog/2013/09/teach-dont-tell/][focussed documentation]] without breaking the language.
+
+And now, after looking into the dark corners of Guile Scheme, it is
+finally time to uncover its sparkling jewelry: Going beyond Python.
+
+** Guile beyond Python
+
+Where Python takes you on a smooth path from Beginner to Experienced Programmer, Guile accompanies you far beyond that, after you cross over its initial bumps.
+
+I am still a beginner of Guile Scheme myself, so I cannot show you all the ways of taking programing beyond Python with GNU Guile. That’s why I invited a few experienced Schemers as guest authors to fill the gap and give you a glimpse into the vast possibilities Guile offers for programmers.
+
+So in addition to my own experience, the next few chapters will quote from the work of Ludovic Courtes (Ludo), Clinton (Unknown Lamer), David Thompson (davexunit), Mark Witmer and Mu Lei (NalaGinrut) to give you an idea of their experience with using Guile Scheme in fancy ways and taking programming beyond the limitations of Python.
+
+We’ll begin with recursion and exact math, come to full posix threads and then go deep into the heart of Guile with programmable syntax, definition of completely new but interoperable languages, flexible object oriented programming and definition of control flow operators with continuations and prompts.
+
+*** Recursion
+
+Guile Scheme provides beautiful recursion features along with full tail recursion. This means, that you can use recursion to solve problems and have the solution look good. Here is a Guile example (taken from [[http://draketo.de/licht/freie-software/let-rekursion][one of my german articles]]):
+
+#+BEGIN_SRC wisp
+define : fib n
+    let rek : (i 0) (u 1) (v 1)
+        if {i >= {n - 2}}
+            . v
+            rek {i + 1} v {u + v}
+#+END_SRC
+
+The equivalent Python-Program looks like this:
+
+#+BEGIN_SRC python
+def fib(n):
+    def rek(i=0, u=1, v=1):
+        if i >= n-2:
+            return v
+        return rek(i+1, v, u+v)
+    return rek()
+#+END_SRC
+
+Time to test them. Let’s start with Guile:
+
+#+BEGIN_SRC wisp
+fib 1
+; => 1
+fib 11
+; => 89
+fib 101
+; => 573...[18 further numbers]
+fib 1001
+; => 7033...[205 further numbers]
+#+END_SRC
+
+And follow up with Python:
+
+#+BEGIN_SRC python
+fib(1)
+# => 1
+fib(11)
+# => 89
+fib(101)
+# => 573...[18 further numbers]
+fib(1001)
+# => ... RuntimeError: maximum recursion depth exceeded
+#+END_SRC
+
+OK, so we cannot do this…
+
+When we want the Python-code to accept bigger input, we must convert the recursion to a for-loop (or change the maximum recursion depth - but that only delays the problem until our memory dies).
+
+#+BEGIN_SRC python
+def fibloop(n):
+   if n in (1, 2):
+      return 1
+   u = 1
+   v = 1
+   for i in range(n-2):
+      tmp = v
+      v = u+v
+      u = tmp
+   return v
+#+END_SRC
+
+This works now. But compared to the beauty of let-recursion it is damn ugly. You could say, that let-recursion in Scheme is just syntactic sugar, because tail-recursion simply does this conversion automatically. But then, 
+
+#+BEGIN_QUOTE
+/“All Turing-complete languages differ solely in syntactic sugar.”/ 
+— Michele Simionato in [[http://www.phyast.pitt.edu/~micheles/scheme/][The Adventures of a Pythonista in Schemeland]][fn:33]
+#+END_QUOTE
+
+Let us finish this by repeating the beautiful Guile code:
+
+#+BEGIN_SRC wisp
+define : fib n
+    let rek : (i 0) (u 1) (v 1)
+        if {i >= {n - 2}}
+            . v
+            rek {i + 1} v {u + v}
+#+END_SRC
+
+*** Exact Math
+
+Where tail recursion lifts limitations in the interaction of
+functions, exact math lifts limitations for working with numbers. If
+you ever stumbled into the limits of floating point precision and
+language, compiler and hardware dependent rounding errors, you’ll know
+it as a really dark place, best to be avoided.
+
+I got hit by these issues when doing binomial calculations with large
+numbers to estimate the probabilities of finding sufficient numbers of
+close neighbors in Freenet. My trusty Python script, once written to
+support a forum entry about the probability that my roleplaying group
+will have enough people to play, broke down before 4000 elements with 
+
+#+latex: \small
+
+#+BEGIN_EXAMPLE
+OverflowError: integer division result too large for a float
+#+END_EXAMPLE
+
+#+latex: \normalsize
+
+The reason is simple: There are some intermediate numbers which are
+much larger than what Python can represent with a floating point
+number.
+
+Knowing that Guile Scheme provides exact numbers, I ported the script
+to Guile, and it just worked.
+
+It just worked and used less then 200 MiB of memory - even though
+intermediate factorials return huge numbers. And huge means
+huge. Guile Scheme effortlessly handled numbers with a size on the
+order of \(10^{8000}\). That is 10 to the power of 8000 - a number
+with 8000 digits.[fn:21]
+
+Most of the time, such capabilities aren’t needed. But there are the
+times when you simply need exact math. And in these situations Guile
+Scheme is a lifesaver.
+
+*** Real Threads!
+
+Different from Python, Guile uses real operating-system threads. Where a threaded Python program becomes slower with more processors due to issues with synchronization between processors, Guile can fully utilize todays multicore computers.
+
+Starting is really easy: Just use futures. Here’s an example:
+
+#+BEGIN_SRC wisp
+  use-modules : ice-9 futures
+                srfi srfi-1 ; for better iota
+  define : string-append-number l
+           apply string-append : map number->string l
+  let loop ; create a long loop. Guile is ridiculously fast 
+           ; with math, so we have to make this expensive 
+           ; to see an effect of concurrency.
+      : i : iota 1000
+      when : not : null? i
+        let : : l : iota 1000 1 ; starts at 1
+          let ; worst case: futures in the inner loop.
+            : a : future : string-append-number l
+              b : future : string-append-number : map log l
+              c : future : string-append-number : map sqrt l
+            ; touch gets the result of the future
+            apply string-append : map touch : list a b c
+        loop : cdr i
+#+END_SRC
+
+This code runs at 220% to 240% CPU load on my 4-core machine (ideal would be 300%) and the runtime decreases by roughly 50% compared to a strictly sequential program, which is pretty good for a tight inner loop. Note that with futures Guile automatically uses a thread pool.
+
+*** Programming the syntax and embedded domain specific languages
+
+Due to the integral role syntax adaptions take in Scheme, making an optimal domain specific language (DSL) with minimal effort while leveraging all the power of Guile Scheme to form an /embedded domain specific language (EDSL)/ is just a matter of pattern matching.
+
+[[http://savannah.gnu.org/users/civodul][Ludovic Courtès]] describes the benefits of [[http://arxiv.org/abs/1305.4584][using an EDSL for packages]] in [[http://gnu.org/s/guix][GNU Guix]] in the description for his Fosdem-Talk [[https://fosdem.org/2014/schedule/event/gnuguix/][Growing a GNU with Guix]] ([[http://video.fosdem.org/2014/H1302_Depage/Sunday/Growing_a_GNU_with_Guix.webm][video]]):[fn:22]
+
+#+BEGIN_QUOTE
+Packages are declared in a high-level fashion, using a domain-specific language embedded in the Scheme programming language. This is the first step in making it hackable to our eyes: packagers do not even need to know Scheme to write a package definition, yet the full power of Scheme, of GNU Guile, and of the Geiser programming environment is available.
+
+From a programming viewpoint, Guix and the GNU distribution are just a bunch of "normal" Guile modules, some of which export "package" objects---one can easily write Guile code that builds atop the distribution, customizes it, or otherwise fiddles with packages.
+#+END_QUOTE
+
+The GNU Guix embedded domain specific language looks like this:
+
+#+BEGIN_SRC scheme
+  (define-module (gnu packages which)
+    #:use-module (guix licenses)
+    #:use-module (guix packages)
+    #:use-module (guix download)
+    #:use-module (guix build-system gnu))
+
+  (define-public which
+    (package
+      (name "which")
+      (version "2.20")
+      (source
+        (origin
+          (method url-fetch)
+          (uri (string-append "mirror://gnu/which/which-"
+                              version ".tar.gz"))
+          (sha256
+           (base32 (string-append
+                    "1y2p50zadb36izzh2zw4dm5hvd"
+                    "iydqf3qa88l8kav20dcmfbc5yl")))))
+      (build-system gnu-build-system)
+      (home-page "https://gnu.org/software/which/")
+      (synopsis "Find full path of shell commands")
+      (description (string-join
+        "which is a program that prints the full paths" 
+        "of executables on a system."))
+      (license gpl3+)))
+#+END_SRC
+
+This realizes a similar goal as ebuild files for [[http://gentoo.org][Gentoo]], but where the ebuild files are run with a specialized scriptrunner providing domain-specific functionality, Guix packages are just standard Scheme code. Compare the above package definition with this ebuild and manifest:
+# need a page break to show the full source.
+#+latex: \newpage
+#+BEGIN_SRC sh
+  # Copyright 1999-2014 Gentoo Foundation
+  # Distributed under the terms of the GNU General Public License v2
+  # Header: ...
+
+  EAPI="4"
+
+  inherit flag-o-matic toolchain-funcs
+
+  DESCRIPTION="Prints out location of specified executables \
+  that are in your path"
+  HOMEPAGE="https://carlowood.github.io/which/"
+  SRC_URI="https://carlowood.github.io/which/${P}.tar.gz"
+
+  LICENSE="GPL-3"
+  SLOT="0"
+  KEYWORDS="alpha amd64 arm arm64 hppa ia64 m68k ~mips ppc \
+            ppc64 s390 sh sparc x86 ~ppc-aix ~x64-freebsd ..."
+  IUSE=""
+
+  src_prepare() {
+          append-lfs-flags
+  }
+
+  src_configure() {
+          tc-export AR
+          default
+  }
+#+END_SRC
+
+#+BEGIN_SRC sh
+...
+DIST which-2.20.tar.gz 135372 SHA256 d417b... WHIRLPOOL 35ca3...
+...
+SIGNATURE
+...
+#+END_SRC
+
+/Note: I (the author of the book) am a longterm Gentoo user./
+
+For details on adapting the Syntax in GNU Guile, see [[https://www.gnu.org/software/guile/manual/html_node/Syntax-Rules.html][Syntax-Rules]] in the Guile reference manual.
+
+*** New Readers: Create languages with completely different syntax
+
+Guile allows defining new languages with completely different syntax
+and using them in concert with the existing languages in
+Guile. Examples include Javascript, Emacs Lisp and Wisp at the
+REPL. Guile realizes this by defining new readers: The first
+processing step in parsing code. But there are usages apart from just
+making it possible to use popular languages inside Guile.
+
+**** Multi-Language interface definitions
+
+As a really cool example which highlights the potential of extending
+the reader to solve real-life challenges, Mark Witmer, author of
+[[http://www.markwitmer.com/guile-xcb/guile-xcb.html][guile-xcb]], describes his experience from implementing asynchronous
+X11-bindings by directly using the XML definition files as library -
+which as task description sounds almost unreal. But let’s give him the
+stage:
+
+Guile-XCB is a library that provides Scheme bindings for the X11
+protocol, the foundational layer of graphical user interfaces in most
+Unix-like operating systems.
+
+The X11 protocol is a format for sending messages back and forth between
+a client that uses graphics and input devices, and a server that manages
+the hardware. These messages are defined in a very long and detailed
+English-language document. That raises the question: what is the easiest
+way to turn this document into working code?
+
+Some clever and dedicated people created a set of XML files that
+describe the binary format used in the core protocol and many of its
+extensions. This is the heart of the XCB (X protocol C-language
+Bindings) project. To make a C library that uses the XML files, they
+wrote a Python library that reads the XML files in and spits out C
+code and header files.
+
+Things are a little different in Guile-XCB. Thanks to Guile's support
+for new language implementations, the XML files themselves are source
+code for a language that compiles down to the same object code format
+that regular Guile programs use. No need for a separate Python script or
+complicated non-standard build logic.
+
+The entry point to defining the new language is in the module
+=(language xml-xcb spec)= and looks like this:
+
+#+BEGIN_SRC scheme
+(define-language xml-xcb
+  #:title "xml-xcb"
+  #:reader custom-read
+  #:compilers `((scheme . ,compile-scheme))
+  #:make-default-environment make-default-environment
+  #:printer write)
+#+END_SRC
+
+The procedure custom-read turns XML into s-expressions using the
+built-in sxml library and the procedure compile-scheme runs through the
+expression and generates record types for all the requests, replies, and
+complex data types that are defined in the XML files. All that's needed
+to compile an XML file is this command at the terminal:
+
+#+BEGIN_SRC sh
+guild compile xproto.xml --from=xml-xcb --output=xproto.go
+#+END_SRC
+
+With the help of a few modules that handle X connections and send and
+receive requests and replies, Guile-XCB turns the XML files into
+modules that you can load just like any other Guile module, without
+requiring any FFI or C-language bindings.
+
+**** Developing new programming languages
+
+A more experimental usage of reader extensions is development of completely new languages - or reviving old languages by giving them access to the full capabilities of GNU Guile. As a practical example, [[https://github.com/NalaGinrut][Mu Lei aka NalaGinrut]] describes his experience with implementing a simple math language: [[http://nalaginrut.com/archives/2014/04/15/simple,-but-not-so-simple][Simple, but not so simple]].[fn:23]
+
+#+BEGIN_QUOTE
+This article is about the front-end only: lexer and parser, and transforming a simple AST (actually it's a list type in Scheme) to another kind of AST, tree-il, the first level of Guile intermediate language. After the tree-il was generated, the rest of the compiling work would be taken by Guile.
+
+So we don't have to face the complicated compiling optimization stuffs. This feature makes it very easy to implement new languages in Guile. 
+
+… [[http://nalaginrut.com/archives/2014/04/15/simple,-but-not-so-simple][Simple, but not so simple]] …
+
+'simple' is just a simple language, maybe too simple for a serious compiler writer. Formally even a front-end would take you a lot of time and hack power. Not to mention the backend. Fortunately, Guile provides a nice way to let language fans focus on the grammar rather than optimization. Nevertheless, all the language front-ends can call from each other, If you're interested in this feature, please read [[http://wingolog.org/archives/2009/02/22/ecmascript-for-guile][Wingo's post on Ecmacript in Guile, and inter calling between Ecmascript and Scheme]].[fn:24][fn:26]
+#+END_QUOTE
+*** Your own object oriented programming system
+The Guile Object Oriented Programming System (GOOPS) allows changing the OOP system to your liking. For example [[http://unknownlamer.org][Clinton aka Unknown Lamer]] did some quite nifty OOP experiments with Guile. As a first stop he suggests having a look at [[http://unknownlamer.org/darcsweb/browse?r=guile-web;a=headblob;f=/src/serialize.scm][serialize.scm]],[fn:35] which contains /“some grade A GOOPS abuse”/:
+
+#+BEGIN_QUOTE
+Multimethods? The meta-object protocol allowing you to mold the object system to your needs?
+
+Using GOOPS, you can define your own object systems! Who wouldn't want to change the fundamental behavior of the language ;-)
+#+END_QUOTE
+
+Compared to the complexities of adjusting Python’s object-system, this allows going outside the usual realm with ease - with mixins instead of inheritance being just one of the simplest applications. And when an often-used definition gets cumbersome, you can utilize macros to make it convenient again.
+
+*** Continuations and prompts
+
+In the chapter /One way to do it?/ I complained that solving tasks in a multitude of ways in Scheme makes it harder to read code. Now it’s time to turn this around: Guile’s [[http://wingolog.org/archives/2010/02/26/guile-and-delimited-continuations][delimited continuations]] via [[https://www.gnu.org/software/guile/manual/html_node/Prompts.html][prompts]] allow implementing advanced control structures in an efficient and elegant way. By default Guile uses them for [[http://www.gnu.org/software/guile/manual/html_node/Exceptions.html#Exceptions][exception handling]][fn:30] via throw and catch, but much more is possible.
+
+One example for those structures are coroutines: Functions which cooperatively share processor time by stopping their execution at given points and deferring to another function, until that other function passes control back to the original function.
+
+Many words for simple code: In [[https://gitorious.org/sly/sly/][Sly]][fn:40] you can define the movement of a character as follows:
+
+# TODO: check whether this API changed with the renaming.
+
+#+BEGIN_SRC wisp
+use-modules : 2d agenda
+              2d coroutine
+              2d game
+
+coroutine
+  while #t
+    walk 'up
+    wait game-agenda 60
+    walk 'down
+    wait game-agenda 60
+#+END_SRC
+
+In short: walk up, then defer to the function =game-agenda= and ask it to pass back control to the coroutine-code 60 seconds later. When =game-agenda= passes control back to the coroutine, walk down and pass back control to the =game-agenda=.
+
+If I wanted to do something similar in Python, I would have to create an iterator which is called by the game-agenda and /yields/ the time to wait after every step. I’d then have to run every function by passing it as argument to the game-agenda (this is a generalization of what the Python game library [[http://pyglet.org][pyglet]] does for scheduling).
+
+Guile does not have this limitation. A function can actually call another function to defer its control flow to that other function. “Hey game agenda, it’s your turn now. Please pass control back to me in 60 seconds”. And that allows using programming constructs easily which are a hassle to use with Python.
+
+*** Summary
+
+Guile Scheme provides functionality which makes it easy for every programmer to go far beyond the limitations of Python.
+
+While elegant recursion support, exact math and real threads provide incremental improvements over Python, redefinitions of the syntax and of concepts from object oriented programming allow shaping the language into something very different. To go even further, continuations and prompts make it possible to create completely new control flow paradigms without ever exiting from Scheme. 
+
+There is no need to wait for something like the new =yield from= keyword in Python 3.3: In GNU Guile you can add such new control flow operators yourself, as the example of Sly shows, and have them integrated in the language just as nicely as all the constructs from the mainainers of GNU Guile. And with this, you can turn it into the perfect solution for the task you want to solve. GNU Guile gives programmers a freedom similar to that which users gain from running free software: Independence from the language designer. If something does not behave as you need it to, you can fix it without having to switch to a new system.
+
+And you do all this in the language you also use for general programming. There is little need for [[http://www.joelonsoftware.com/articles/fog0000000022.html][mental context switches]] while you are working. No matter whether you write a simple string-processor or modify the very core of your programming environment: You are always using GNU Guile.
+
+* Conclusions
+
+** Guile Scheme is coming back
+
+While Python is a good choice for new programmers and a great tool for solving practical problems, thanks to providing a complete set of functionality for any kind of task, encoded in a minimal set of highly polished basic concepts using very readable syntax, the structures of Python are almost stretched to their limit and extensions like list comprehensions and decorators make it more and more complicated for newcomers to really understand code from others. This makes Python yet another example for [[http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming][Greenspuns 10th Rule]]:
+
+#+BEGIN_QUOTE
+/“Every sufficiently complex application/language/tool will either have to use Lisp or reinvent it the hard way.”/ — [[http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming][Greenspuns 10th Rule]]
+#+END_QUOTE
+
+Guile Scheme on the other hand has a higher barrier of entry and suffers from some rough edges. But when actually doing a comparison between Guile and the strongest points of Python, Guile looks quite good. It does not have the /one best way to do it/, which Python promotes, but that’s part of the reason why I started looking into Guile Scheme: The wish to go beyond the way of Python. Scaling a program from a first draft to a big application looks easier with Guile, and while the parentheses look odd at first, it’s extensions for infix-math and for indentation-based syntax make it a better choice for pseudocode than Python. Its standard library is much smaller than the batteries of Python, but that is partially made up for by offering an easier way to call C-libraries.
+
+There are severe shortcomings, though. Some come from pursuing two goals at the same time: Language design and solving problems. This leads to a mix of low-level, high-level and deprecated concepts baked into the language on equal footing - as well as some baggage from compatibility to the Scheme-standard which does not allow using Guiles advanced features like easy keyword-arguments throughout. And there is no best practices guide to be found. The biggest challenge, however, is deploying a Guile-based program to platforms which do not have a decent package manager.
+
+But these shortcomings are more than compensated by its strengths. Let-recursion (named let) is not only a testament to the elegance of recursion, but also to the reward for letting programmers define the building blocks of their language as they use them, from basic tools like elegant loop structures up to generic functions, exception handling, coroutines and boundless other possibilities. And new readers allow providing all these capabilities to new languages for specialized tasks - like parsing XML files to implement protocols directly from specifications as done in guile-xcb - while exact math has your back when other systems would fail.
+
+Last, but not least, direct access to real threads (and consequently also truly concurrent futures) provides crucial capabilities in the current times in which even mobile phones come with multiple processors.
+
+As a related note, learning Scheme with The Little Schemer made understanding C++ Template recursion as for example described in “Modern C++ design” (my latest reading) a breeze. So even if you don’t expect to be using Scheme to solve problems in real life, I can wholeheatedly recommend learning it to get an understanding of the possibilities programming can offer beyond Python. I expect to see more and more of its features turn up in other languages, so, if nothing else, learning Scheme will be a very worthwhile investment to prepare for the future of your favorite language.
+
+And when it comes to Scheme, GNU Guile is a very good choice which showed that it can withstand the onslaught of time which pushed so many other languages and systems into oblivion. Guile already had many different maintainers, and it is likely that it will keep being improved in the forseeable future -- similar to GNU Emacs, which is still moving forward after 30 years of development. GNUs may not always be the fastest movers, but they sure are stubborn - and that’s a very good quality to have in the core of our systems.
+
+To sum this up there’s nothing better than the well-known quote from Victor Marie Hugo:
+
+#+BEGIN_QUOTE
+/Nothing is as powerful as an idea whose time has come./ — Victor Marie Hugo
+#+END_QUOTE
+
+Keep an eye on Guile Scheme: It is coming back.
+
+#+latex: \appendix
+* Appendix
+** See also
+*** Tools, Projects, Articles
+- [[http://gnu.org/s/guile][GNU Guile]]: http://gnu.org/s/guile
+- [[http://draketo.de/proj/guile-basics/][Guile Basics]]: http://draketo.de/proj/guile-basics/
+- [[http://wingolog.org/][wingolog]]: http://wingolog.org/
+- [[http://www.nalaginrut.com/archives/2014/03/27/a-way-to-write-shit-with-you-elegant-scheme-language][chaos code with scheme]]: \\ http://www.nalaginrut.com/archives/2014/03/27/a-way-to-write-shit-with-you-elegant-schemeguage
+*** Recommended Reading
+- [[http://web-artanis.com/scheme.html][Learn Scheme in 15 minutes]] from the Artanis web framework: http://web-artanis.com/scheme.html
+- [[http://taylanub.github.io/doc/lisp-rundown.txt][A Rundown of Lisp]]: http://taylanub.github.io/doc/lisp-rundown.txt 
+- [[http://www.gnu.org/software/guile/manual/html_node/index.html][The Guile Manual]]: http://www.gnu.org/software/guile/manual/html_node/index.html
+- The Little Schemer, The Reasoned Schemer, The Seasoned Schemer and The Little Prover by MIT Press.
+- [[http://www.cs.rochester.edu/~gildea/guile-scmutils/][sicm with guile-sicm]] (exploring classical mechanics with Guile Scheme): \\ http://www.cs.rochester.edu/~gildea/guile-scmutils/
+** Glossary
+Terms used by Schemers.
+
+- Procedure: Function.
+- Parens: Parentheses (round brackets)
+- Thunk: One block of code. Enclosed by parens.
+- Body: All the forms in a procedure.
+- Form: Something which appears in a body: A definition or an expression.
+- Definition: A form which starts with =(define=.
+- Expression: Any form which can appear in the function body which is not a definition. See [[http://www.cs.indiana.edu/scheme-repository/R4RS/r4rs_6.html][R4RS]] for the clear definition.
+- RnRS: Revision n Report for Scheme
+- SRFI: Scheme Request for Implementation (spelled as “surfie”). Like PEP.
+** Solution Map
+
+*** File as Module and Script
+
+In Python you use a runtime switch with magic variables at the bottom:
+
+#+BEGIN_SRC python
+if __name__ == "__main__":
+    # your code
+    pass
+#+END_SRC
+
+In Guile Scheme you use shell deferring at the top:
+
+#+BEGIN_SRC scheme
+  #!/bin/sh
+  # -*- scheme -*-
+  exec guile -e main -s "$0" "$@"
+  # Thanks to exec, the following lines 
+  # are never seen by the shell.
+  !#
+  (define (main args)
+    (display "Hello World!"))
+#+END_SRC
+
+*** Output a datastructure to console to put it in the interpreter
+
+In Python you use print and paste the result into the shell:
+
+#+BEGIN_SRC python :results output
+print [1, 2, 3]
+#+END_SRC
+
+#+RESULTS:
+: [1, 2, 3]
+
+#+BEGIN_SRC python :results output
+print eval("[1, 2, 3]")
+#+END_SRC
+
+#+RESULTS:
+: [1, 2, 3]
+
+
+In Scheme you use write and paste the result into a =(quote ...)= form:
+
+#+BEGIN_SRC scheme :results output
+(write '(1 2 3))
+(newline)
+#+END_SRC
+
+#+RESULTS:
+: (1 2 3)
+
+#+BEGIN_SRC scheme :results output 
+(write (with-input-from-string "(1 2 3)" read))
+#+END_SRC
+
+#+RESULTS:
+: (1 2 3)
+
+Both versions have corner cases, but work well for many situations. For custom classes Python requires defining a =__repr__= or =__str__= function which returns a string that can be =eval()='ed to the same class.
+
+*** help in interpreter
+
+In Python you call =help(...)=
+
+#+BEGIN_SRC python :results output
+help(help)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Help on _Helper in module site object:
+
+class _Helper(__builtin__.object)
+ |  Define the builtin 'help'.
+ |  This is a wrapper around pydoc.help (with a twist).
+ |  
+ |  Methods defined here:
+ |  
+ |  __call__(self, *args, **kwds)
+ |  
+ |  __repr__(self)
+ |  
+ |  ----------------------------------------------------------------------
+ |  Data descriptors defined here:
+ |  
+ |  __dict__
+ |      dictionary for instance variables (if defined)
+ |  
+ |  __weakref__
+ |      list of weak references to the object (if defined)
+
+#+end_example
+
+In Guile Scheme you also call =(help ...)=
+
+#+BEGIN_SRC scheme :results output
+(help help)
+#+END_SRC
+
+
+Note: =(help help)= does not work within org-mode.
+
+# TODO: Python decorator example
+
+*** Profiling
+
+In Python you can use =python -m profile -s cumtime path/to/file.py= or timeit:
+
+#+BEGIN_SRC python :results output
+import timeit
+print timeit.timeit("1 + 1", number=1000000)
+#+END_SRC
+
+#+RESULTS:
+: 0.104151010513
+
+In Guile Scheme you can use ,profile in the interpreter. For fast calls you need to use a loop. Alternatively you can use the statprof module:
+
+#+BEGIN_SRC wisp
+use-modules : statprof
+with-statprof #:loop 1000000
+    + 1 1
+#+END_SRC
+
+#+RESULTS:
+: 0.879625397
+
+** GNU General Public License (GNU GPL)
+
+# they call this the fine print, so make it smaller
+#+latex: \miniscule
+#+include: "gpl.org"
+#+latex: \normalsize
+
+#+latex: \backmatter
+#+latex: \cleardoublepage
+#+latex: \thispagestyle{empty}
+
+# Back Cover, adapted from http://latex-my.blogspot.de/2010/01/front-and-back-covers.html
+# Temporarily enlarge this page to push
+# down the bottom margin
+#+latex: \enlargethispage{3\baselineskip}
+# #+latex: \pagecolor[HTML]{0E0407}
+
+#+latex: \begin{center}
+#+latex: \begin{minipage}{.8\textwidth}
+#+latex: \Large\bfseries
+
+It starts with a laudation for Python, the first programming language I loved.
+
+#+latex: \vspace*{1em}
+
+/In my first years of programming I thought that I’d never need anything else./
+
+#+latex: \begin{center}
+#+latex: \huge\bfseries\sffamily\color{red!50!black}
+`Beyond Python.'
+#+latex: \end{center}
+
+Then it dives into Guile Scheme.
+
+#+latex: \vspace*{1em}
+
+/Where Python takes you on a smooth path from Beginner to Experienced Programmer, Guile accompanies you far beyond after you cross over its initial bumps./
+
+#+latex: \vspace*{1em}
+
+Join me on my path into Guile.
+
+#+latex: \end{minipage}
+#+latex: \end{center}
+
+#+latex: \vspace*{\stretch{1}}
+
+#+latex: \begin{center}
+# ebook ISBN:
+# #+latex: \colorbox{white}{\EANisbn[978-3-7375-6976-7]}
+# printed book ISBN:
+# #+latex: \colorbox{white}{\EANisbn[978-3-7375-6840-1]}
+
+#+latex: \vspace*{\baselineskip}
+
+#+latex: \textbf{{\textbullet Cover Illustration by VHR, Michael Gil, Martin Grabmüller, Arne Babenhauserheide \textbullet}}
+#+latex: \end{center}
+
+
+* Footnotes
+
+[fn:1] This statement is a bit too general: A programming language actually is the interface between the programmer, the computer and other programmers - including the later self of the original programmer. Sometimes a bit of syntax-overhead can improve readability at the expense of convenience for the initial creation of the code. For those cases, templates can actually make sense. But this is not the case for =__name__ === "=__main__=" and similar kludges in Python. If you want to dive into these issues, then you should start with prose or math: Text written by humans for humans, without a computer in the mix. 
+
+[fn:2]  =call-with-prompt= is already the simplified version of the even more complex concept of general continuations. Let’s not go there for the time being...
+
+[fn:3] This example uses equal? instead of eq? to make the distinction between car/cdr and first/rest  more visible. eq? compares object identity while equal? compares the content of a variable. In The Little Schemer =rember= uses eq? because it is defined at a point in the book where equal? is still unknown.
+
+[fn:4] Going from =cdr= to =cddr= is similar to the way how derivation is written in mathematics: =dx/dt= for the first derivative, =d²x/dt²= for the second, and so forth. In ASCII this can be simplified to =xddt= - In the last 2 years I read plenty of fortran code using variable names like =mdddx=: The third derivative of the mass in x-direction.
+
+[fn:5] “The decision was made to not require parentheses in the Python language’s grammar, but as a matter of style I think you should always use them” — [[http://docs.python.org/2/whatsnew/2.5.html\#pep-308][Description of PEP 308 in the release notes of Python 2.5]]. In my opinion this is a case where Python would have benefitted from requiring more parens. But then it would have shown much more clearly that the new syntax is essentially a different language style merged into Python. But still, do listen when your elected BDFL speaks. Use parens around inline if-else.
+
+[fn:6] According to [[http://wingolog.org/archives/2014/01/19/elf-in-guile][Andy Wingo's writeup on Elf in Guile]], version 2.2 should reduce these startup times quite a bit: http://wingolog.org/archives/2014/01/19/elf-in-guile
+
+[fn:7] Aside from Guile, there are lots of other Scheme implementations. Using the posting rates to mailing lists as a rough estimate of activity, Racket ([[http://dir.gmane.org/gmane.comp.lang.racket.user][user]], [[http://dir.gmane.org/gmane.comp.lang.racket.devel][devel]]), PLT ([[http://dir.gmane.org/gmane.lisp.scheme.plt.devel][devel]], [[http://dir.gmane.org/gmane.lisp.scheme.plt][plt]]) and Guile ([[http://dir.gmane.org/gmane.lisp.guile.user][user]], [[http://dir.gmane.org/gmane.lisp.guile.devel][devel]]) are roughly on the same level of activity of 5 to 10 messages per day while all the other Schemes are at least factor 2 below that. So from estimating activity, Guile looks like a sane choice. But to set this into perspective: The combined posting rate of these three most active Scheme lists together only approaches the posting rate of [[http://dir.gmane.org/gmane.comp.java.clojure.user][clojure]], [[http://dir.gmane.org/gmane.comp.python.devel][python-devel]] (without counting [[http://gmane.org/find.php?list=python][all the other python-lists]]) or [[http://dir.gmane.org/gmane.comp.lang.javascript.v8.devel][javascript v8 devel]] alone. So if you’re looking for pure activity, Scheme might not be the most obvious choice. But then, I did not find my way to Guile Scheme by searching for the most popular language. I found it while searching for ways to go beyond the limits of the languages I knew.
+
+[fn:8] As default way I take the one which Guile uses if you give it no additional arguments: The easiest way for the programmer.
+
+[fn:9] Hint: if you write a tutorial on Scheme, do NOT start with do-loops. Rather start with let-recursion and simple usages of SRFI-42 and foof-loop. But please don’t reference their documentation documents as if they were tutorials. That would be a very rough start.
+
+[fn:10] The book Apprenticeship Patterns applies the idea of patterns to personal development. It has been licensed under a Creative Commons License, though the O'Reilly page does not state that anymore. You can find the book in the chimera labs: http://chimera.labs.oreilly.com/books/1234000001813/index.html
+
+[fn:11] Guile Basics collects some of the solutions I found when searching my way into GNU Guile. It is no book but rather a loose and unstructured hybrid, somewhere between a FAQ and a series of blog posts: http://draketo.de/proj/guile-basics/
+
+[fn:12] Ceremony describes actions without information content which are needed only to fulfil the requirements of your tool.
+
+[fn:13] The opinionated guide to scheme implementations from Andy Wingo provides an overview of the wealth of Scheme implementations: http://wingolog.org/archives/2013/01/07/an-opinionated-guide-to-scheme-implementations
+
+[fn:14] For some more background why I took the step to create Wisp instead of using readable, see my presentation [[http://draketo.de/proj/wisp/why-wisp.html][Why Wisp?]]: http://draketo.de/proj/wisp/why-wisp.html
+
+[fn:15] When I realized that let-recursion provides the simplest possible model for recursive code with initialization of the recursion start, I wrote an article about my experience: http://draketo.de/licht/freie-software/let-rekursion (in german)
+
+[fn:16] To get instant contact with the guile developers, visit the freenode IRC webchat: http://webchat.freenode.net?randomnick=1&channels=%23guile
+
+[fn:17] In my opinion, SRFI-42 still falls a small way short of Python list comprehensions. In Python, the syntax looks like the datastructure it creates, joined in a sentence. For example, =[i for i in range(5)]= can be spelled as “the list containing i for each i in range up to five”. In SRFI-42 the syntax rather looks like a statement. I would spell the example =(list-ec (:range i 5) i)= as “the list eager comprehension which uses i from the range up to five as i”. It does not feel quite as polished as the Python version. But it is already very close and quickly becomes natural.
+
+[fn:18] To get foof-loop for guile, you need to first install guildhall, a package manager for guile. See [[https://github.com/ijp/guildhall/wiki/Getting-Started][Getting Started]] for a short tutorial: https://github.com/ijp/guildhall/wiki/Getting-Started
+
+[fn:19] Sly is a game engine for Guile Scheme which provides a dynamic live coding environment that allows games to be built interactively and iteratively: http://dthompson.us/pages/software/sly.html
+
+[fn:20] A breakable toy is a basic building block from Apprenticeship Patterns in which you choose a project which is interesting but which is not needed in production, so you can play with it without fearing to lose something if you break it. It allows easy experimentation and faster learning due to being able to try new things without having to get them perfect right away and without having to polish them for use by others: http://chimera.labs.oreilly.com/books/1234000001813/ch05.html\#breakable_toys
+
+[fn:21] The ease of using exact math in Guile impressed me so much, that I wrote an article about my experience: Exact Math to the rescue: http://draketo.de/english/exact-math-to-the-rescue
+
+[fn:22] [[https://fosdem.org/2014/schedule/event/gnuguix/][Growing a GNU with Guix]] at FOSDEM 2014: https://fosdem.org/2014/schedule/event/gnuguix/, video: http://video.fosdem.org/2014/H1302_Depage/Sunday/Growing_a_GNU_with_Guix.webm
+
+[fn:23] [[http://nalaginrut.com/archives/2014/04/15/simple,-but-not-so-simple][Simple, but not so simple]] is a blog post about implementing a new language in Guile with 50 lines of code: http://nalaginrut.com/archives/2014/04/15/simple,-but-not-so-simple
+
+[fn:24] In the article [[http://wingolog.org/archives/2009/02/22/ecmascript-for-guile][ecmascript for guile]] Andy Wingo explains in fun and approachable style how to run (strictly written) JavaScript in Guile and access Guile features from Javascript: http://wingolog.org/archives/2009/02/22/ecmascript-for-guile
+
+[fn:25] [[http://mumble.net/~campbell/scheme/style.txt][Riastradh's Lisp Style Rules]] is an article which provides rules with rationales for formatting Lisp code, with some parts focussed specifically on Scheme: http://mumble.net/~campbell/scheme/style.txt
+
+[fn:26] Using the ECMAscript language in Guile allows executing (clean) Javascript while retaining the full power of Scheme, including all functionality written in other Guile languages. To experiment with it, start a recent Guile (2.0.11 or newer) as =guile --language=ecmascript=. This enables you to do this: =require("srfi.srfi-1").iota(10, 5, 7); //= /ftagn/.
+
+[fn:27] The [[https://github.com/NalaGinrut/nala-repl/blob/master/nala/src.scm][nala-repl interpreter hacks]] provide utility functions like getting the source code of a program: https://github.com/NalaGinrut/nala-repl/blob/master/nala/src.scm
+
+[fn:28] [[http://www.gnu.org/software/guile/manual/html_node/Guile-Scripting.html][Guile-Scripting]] from the Guile Manual describes how to use GNU Guile for scripts: http://www.gnu.org/software/guile/manual/html_node/Guile-Scripting.html
+
+[fn:29] [[http://gnu.org/s/guix][GNU Guix]] is a distribution built on Nix which uses GNU Guile Scheme for implementation and package definitions. It treats packages as pure functions and ensures a consistent system state even when the computer loses power during an update: http://gnu.org/s/guix
+
+[fn:30] In the chapter [[http://www.gnu.org/software/guile/manual/html_node/Exceptions.html\#Exceptions][exception handling]] the Guile manual explains what exceptions are and how to use exception handling in GNU Guile: http://www.gnu.org/software/guile/manual/html_node/Exceptions.html
+
+[fn:31] The =in=m= example uses parenthesized syntax, because it needed a few round-trips to get right so I needed to make it as easy as possible to discuss the implementation with other Schemers.
+
+[fn:32] In [[http://www.phyast.pitt.edu/~micheles/scheme/scheme21.html][compile time vs. runtime in Scheme]] Michele Simionato describes expansion, optimization and run-time, why Scheme tracks these phases and how it escaped from the dark tower of Meta-levels: http://www.phyast.pitt.edu/~micheles/scheme/scheme21.html
+
+# Local Variables:
+# org-confirm-babel-evaluate: nil
+# org-export-allow-bind-keywords: t
+# org-babel-noweb-wrap-start: "{{{"
+# org-babel-noweb-wrap-end: "}}}"
+# End:
+
+[fn:33] [[http://www.phyast.pitt.edu/~micheles/scheme/][The Adventures of a Pythonista in Schemeland]] is a web-based guide to Scheme for Pythonistas written and published by Michele Simionato.
+
+[fn:34] [[http://srfi.schemers.org/srfi-119/srfi-119.html][SRFI-119]] standardizes the syntax of wisp: http://srfi.schemers.org/srfi-119/srfi-119.html
+
+[fn:35] [[http://unknownlamer.org/darcsweb/browse?r=guile-web;a=headblob;f=/src/serialize.scm][serialize.scm]] by Unknown Lamer uses GOOPS to serialize and unserialize objects of various types: http://unknownlamer.org/darcsweb/browse?r=guile-web;a=headblob;f=/src/serialize.scm
+
+[fn:36] The Little Schemer is a popular and very readable introduction to understand the nature of computing by programming with Scheme, and a great start into thinking in recursion: https://mitpress.mit.edu/index.php?q=books/little-schemer
+
+[fn:37] The Little Schemer is a popular and very readable introduction to programming with Scheme and a great start into thinking in recursion: https://mitpress.mit.edu/index.php?q=books/little-schemer
+
+[fn:38] In [[http://programming-puzzler.blogspot.de/2010/08/racket-vs-clojure.html][Racket vs. Clojure]] Mark Engelberg explains why he uses Clojure instead of Racket for professional work: http://programming-puzzler.blogspot.de/2010/08/racket-vs-clojure.html
+
+[fn:39] [[https://github.com/ijp/guildhall][Guildhall]] provides functionality like PyPI but is not integrated with Guile yet. It adds package management capabilities to the guild command: https://github.com/ijp/guildhall
+
+[fn:40] [[http://dthompson.us/pages/software/sly.html][Sly]] is a game engine for Guile Scheme: http://dthompson.us/pages/software/sly.html
+
+[fn:41] [[http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming][Philip Greenspuns 10th Rule]] is immortalized in the venerable ContentCreationWiki: http://c2.com/cgi/wiki?GreenspunsTenthRuleOfProgramming
+
+[fn:42] To get wisp, install Guile version 2.0.11 or later and run =wget https://bitbucket.org/ArneBab/wisp/downloads/wisp-0.9.0.tar.gz; tar xf wisp-0.9.0.tar.gz ; cd wisp-0.9.0/; ./configure; make check; examples/newbase60.w 123= \\ if it prints 23, you are set up.
+
