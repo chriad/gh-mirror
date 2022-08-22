@@ -253,3 +253,33 @@
 [submodule "SOURCE/sed-awk"]
 	path = SOURCE/sed-awk
 	url = https://resources.oreilly.com/examples/9781565922259.git
+[submodule "BOOKS/refcard-org-babel"]
+	path = BOOKS/refcard-org-babel
+	url = https://github.com/fniessen/refcard-org-babel.git
+[submodule "BOOKS/org-babel-examples"]
+	path = BOOKS/org-babel-examples
+	url = https://github.com/dfeich/org-babel-examples.git
+[submodule "AWESOME/awesome-cl"]
+	path = AWESOME/awesome-cl
+	url = https://github.com/CodyReichert/awesome-cl.git
+[submodule "PDF/mpeepdf"]
+	path = PDF/mpeepdf
+	url = https://github.com/Tholep/mpeepdf.git
+[submodule "CHEAT-SHEETS/gosukiwi--common-lisp-cheatsheet"]
+	path = CHEAT-SHEETS/gosukiwi--common-lisp-cheatsheet
+	url = https://gist.github.com/gosukiwi/04b7680efa08bb9affd3b0c3087d7126
+[submodule "Mary"]
+	path = Mary
+	url = https://github.com/andybelltree/Mary.git
+[submodule "PDF/dpsprep"]
+	path = PDF/dpsprep
+	url = https://github.com/kcroker/dpsprep.git
+[submodule "PDF/PDF-Malware-Parser"]
+	path = PDF/PDF-Malware-Parser
+	url = https://github.com/mzweilin/PDF-Malware-Parser.git
+[submodule "BOOKS/TSPL-pocket"]
+	path = BOOKS/TSPL-pocket
+	url = https://github.com/ustcscgy/TSPL-pocket.git
+[submodule "BOOKS/wiwinwlh"]
+	path = BOOKS/wiwinwlh
+	url = https://github.com/sdiehl/wiwinwlh.git
