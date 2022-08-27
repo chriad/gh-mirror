@@ -283,3 +283,21 @@
 [submodule "BOOKS/wiwinwlh"]
 	path = BOOKS/wiwinwlh
 	url = https://github.com/sdiehl/wiwinwlh.git
+[submodule "zen-of-py-by-example"]
+	path = zen-of-py-by-example
+	url = https://gist.github.com/evandrix/2030615
+[submodule "notes-on-dirichlet-processes"]
+	path = notes-on-dirichlet-processes
+	url = https://github.com/tdhopper/notes-on-dirichlet-processes.git
+[submodule "SOURCE/wicked_cool_shell_scripts_2e"]
+	path = SOURCE/wicked_cool_shell_scripts_2e
+	url = https://github.com/brandonprry/wicked_cool_shell_scripts_2e.git
+[submodule "AWESOME/awesome-pdf"]
+	path = AWESOME/awesome-pdf
+	url = https://github.com/py-pdf/awesome-pdf
+[submodule "BOOKS/craftinginterpreters"]
+	path = BOOKS/craftinginterpreters
+	url = https://github.com/munificent/craftinginterpreters.git
+[submodule "PDF/i7j-rups"]
+	path = PDF/i7j-rups
+	url = https://github.com/itext/i7j-rups.git
