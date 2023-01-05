@@ -116,7 +116,7 @@
 	path = BOOKS/evil-epubs
 	url = https://github.com/DistriNet/evil-epubs.git
 [submodule "pics"]
-	path = pics
+	path = corkami/pics
 	url = https://github.com/corkami/pics.git
 [submodule "BOOKS/selinux-notebook"]
 	path = BOOKS/selinux-notebook
@@ -301,3 +301,66 @@
 [submodule "PDF/i7j-rups"]
 	path = PDF/i7j-rups
 	url = https://github.com/itext/i7j-rups.git
+[submodule "PDF/Briss-2.0"]
+	path = PDF/Briss-2.0
+	url = https://github.com/mbaeuerle/Briss-2.0.git
+[submodule "INCUBATOR/clamav_check.py"]
+	path = INCUBATOR/clamav_check.py
+	url = https://gist.github.com/bng44270/45edecef9b3a237a14b6fe6d1226f9a7
+[submodule "INCUBATOR/ghostpdl"]
+	path = INCUBATOR/ghostpdl
+	url = http://git.ghostscript.com/ghostpdl.git
+[submodule "INCUBATOR/NSA_COMP3321"]
+	path = INCUBATOR/NSA_COMP3321
+	url = https://github.com/0xfaust/NSA_COMP3321.git
+[submodule "INCUBATOR/sec/sedutil"]
+	path = INCUBATOR/sec/sedutil
+	url = https://github.com/Drive-Trust-Alliance/sedutil.git
+[submodule "SOURCE/bo"]
+	path = SOURCE/bo
+	url = https://github.com/shugaoye/bo.git
+[submodule "SOURCE/chibi-sicp"]
+	path = SOURCE/chibi-sicp
+	url = https://gitlab.com/Lockywolf/chibi-sicp.git
+[submodule "INCUBATOR/SEC/ioc"]
+	path = INCUBATOR/SEC/ioc
+	url = https://github.com/avast/ioc.git
+[submodule "INCUBATOR/stringlish"]
+	path = INCUBATOR/stringlish
+	url = git@github.com:aycock/stringlish.git
+[submodule "SOURCE/code"]
+	path = SOURCE/code
+	url = https://github.com/sdrforengineers/code.git
+[submodule "SOURCE/sdrforengineers"]
+	path = SOURCE/sdrforengineers
+	url = https://github.com/sdrforengineers/code.git
+[submodule "PDF/jbig2enc"]
+	path = PDF/jbig2/jbig2enc
+	url = https://github.com/agl/jbig2enc.git
+[submodule "PDF/jbig2/leptonica"]
+	path = PDF/jbig2/leptonica
+	url = https://github.com/DanBloomberg/leptonica.git
+[submodule "BOOKS/mml-book.github.io"]
+	path = BOOKS/mml-book.github.io
+	url = https://github.com/mml-book/mml-book.github.io.git
+[submodule "INCUBATOR/network-manager-wireguard"]
+	path = INCUBATOR/network-manager-wireguard
+	url = https://github.com/max-moser/network-manager-wireguard.git
+[submodule "PDF/caradoc"]
+	path = PDF/caradoc
+	url = https://github.com/caradoc-org/caradoc.git
+[submodule "BOOKS/sdrforengineers/LectureMaterials"]
+	path = BOOKS/sdrforengineers/LectureMaterials
+	url = https://github.com/sdrforengineers/LectureMaterials.git
+[submodule "SOURCE/linux_raspberrypi_book"]
+	path = SOURCE/linux_raspberrypi_book
+	url = https://github.com/ALIBERA/linux_raspberrypi_book.git
+[submodule "QUADERNO/A4_fw_unpacker"]
+	path = QUADERNO/A4_fw_unpacker
+	url = https://github.com/ygjsz/A4_fw_unpacker.git
+[submodule "PDF/termpdf.py"]
+	path = PDF/termpdf.py
+	url = https://github.com/dsanson/termpdf.py
+[submodule "BOOKS/voicebook"]
+	path = SOURCE/voicebook
+	url = https://github.com/jim-schwoebel/voicebook.git

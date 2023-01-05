@@ -37,4 +37,9 @@ Install packages by ...
 | chezmoi | snap     | documentation |
 | up      | manual   |               |
 | ytcc    | anaconda | documentation |
-     
+    
+
+move submodule
+
+git mv bla/x bli/x
+ 
