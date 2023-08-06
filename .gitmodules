@@ -23,7 +23,7 @@
 	path = user.js
 	url = https://github.com/arkenfox/user.js.git
 [submodule "youtube-dl"]
-	path = youtube-dl
+	path = MEDIA/youtube-dl
 	url = https://github.com/ytdl-org/youtube-dl.git
 [submodule "CHEAT-SHEETS/m4dc4p-haskell-cheatsheet"]
 	path = CHEAT-SHEETS/m4dc4p-haskell-cheatsheet
@@ -44,7 +44,7 @@
 	path = mkvtag
 	url = https://github.com/ylabonte/mkvtag.git
 [submodule "jellyfin-mpv-shim"]
-	path = jellyfin-mpv-shim
+	path = MEDIA/jellyfin-mpv-shim
 	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
 [submodule "sway-launcher-desktop"]
 	path = sway-launcher-desktop
@@ -137,7 +137,7 @@
 	path = PDF/linkrot
 	url = https://github.com/marshalmiller/linkrot.git
 [submodule "dpt-rp1-py"]
-	path = dpt-rp1-py
+	path = QUADERNO/dpt-rp1-py
 	url = https://github.com/janten/dpt-rp1-py.git
 [submodule "mp4v2"]
 	path = mp4v2
@@ -182,7 +182,7 @@
 	path = BOOKS/CL-reference
 	url = https://github.com/robert-strandh/CL-reference.git
 [submodule "dpt-tools"]
-	path = dpt-tools
+	path = QUADERNO/dpt-tools
 	url = https://github.com/HappyZ/dpt-tools.git
 [submodule "polar-bookshelf"]
 	path = polar-bookshelf
@@ -364,3 +364,21 @@
 [submodule "BOOKS/voicebook"]
 	path = SOURCE/voicebook
 	url = https://github.com/jim-schwoebel/voicebook.git
+[submodule "INCUBATOR/furby-source"]
+	path = INCUBATOR/furby-source
+	url = https://github.com/gnomon-/furby-source.git
+[submodule "syncthing"]
+	path = syncthing
+	url = https://github.com/syncthing/syncthing.git
+[submodule "digikambg.sh"]
+	path = digikambg.sh
+	url = https://gist.github.com/renovita/86b122fdd0ef0c22201e510d4798d450
+[submodule "no.mifi.losslesscut"]
+	path = no.mifi.losslesscut
+	url = https://github.com/flathub/no.mifi.losslesscut.git
+[submodule "BOOKS/scheme"]
+	path = BOOKS/scheme
+	url = https://github.com/write-you-a-scheme-v2/scheme.git
+[submodule "MEDIA/cue2ffmeta"]
+	path = MEDIA/cue2ffmeta
+	url = https://gist.github.com/remko/e15c4fe26d479e134f36
