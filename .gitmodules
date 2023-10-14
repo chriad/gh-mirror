@@ -98,7 +98,7 @@
 	path = BOOKS/sobtec2
 	url = https://0xacab.org/sobteclib/sobtec2.git
 [submodule "a188b8969a539ce0f7a64deb56c00277"]
-	path = a188b8969a539ce0f7a64deb56c00277
+	path = MEDIA/convert-m4b
 	url = https://gist.github.com/a188b8969a539ce0f7a64deb56c00277.git
 [submodule "get_iplayer"]
 	path = get_iplayer
@@ -125,7 +125,7 @@
 	path = censorship/stegozoa-video
 	url = https://github.com/GabrielCFigueira/stegozoa-video.git
 [submodule "cue-to-mp3"]
-	path = cue-to-mp3
+	path = MEDIA/cue-to-mp3
 	url = https://gist.github.com/bancek/b37b780292540ed2d17d
 [submodule "data-source/www.submarinecablemap.com"]
 	path = data-source/www.submarinecablemap.com
@@ -182,7 +182,7 @@
 	path = BOOKS/CL-reference
 	url = https://github.com/robert-strandh/CL-reference.git
 [submodule "dpt-tools"]
-	path = QUADERNO/dpt-tools
+	path = dpt-tools
 	url = https://github.com/HappyZ/dpt-tools.git
 [submodule "polar-bookshelf"]
 	path = polar-bookshelf
@@ -374,7 +374,7 @@
 	path = digikambg.sh
 	url = https://gist.github.com/renovita/86b122fdd0ef0c22201e510d4798d450
 [submodule "no.mifi.losslesscut"]
-	path = no.mifi.losslesscut
+	path = FLATHUB/no.mifi.losslesscut
 	url = https://github.com/flathub/no.mifi.losslesscut.git
 [submodule "BOOKS/scheme"]
 	path = BOOKS/scheme
@@ -382,3 +382,15 @@
 [submodule "MEDIA/cue2ffmeta"]
 	path = MEDIA/cue2ffmeta
 	url = https://gist.github.com/remko/e15c4fe26d479e134f36
+[submodule "MEDIA/lossless-cut"]
+	path = MEDIA/lossless-cut
+	url = https://github.com/mifi/lossless-cut.git
+[submodule "STOCK/calibre"]
+	path = STOCK/calibre
+	url = git@github.com:kovidgoyal/calibre.git
+[submodule "MEDIA/ffmpeg-add-chapters-mp4"]
+	path = MEDIA/ffmpeg-add-chapters-mp4
+	url = https://gist.github.com/Elenesgu/ba4e5cd81f9c98ab5979b3db62aea7cc
+[submodule "MEDIA/QUODLIBET/quodlibet-plugins"]
+	path = MEDIA/QUODLIBET/quodlibet-plugins
+	url = https://github.com/pschwede/quodlibet-plugins.git
