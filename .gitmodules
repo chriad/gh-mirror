@@ -182,7 +182,7 @@
 	path = BOOKS/CL-reference
 	url = https://github.com/robert-strandh/CL-reference.git
 [submodule "dpt-tools"]
-	path = dpt-tools
+	path = QUADERNO/dpt-tools
 	url = https://github.com/HappyZ/dpt-tools.git
 [submodule "polar-bookshelf"]
 	path = polar-bookshelf
@@ -394,3 +394,6 @@
 [submodule "MEDIA/QUODLIBET/quodlibet-plugins"]
 	path = MEDIA/QUODLIBET/quodlibet-plugins
 	url = https://github.com/pschwede/quodlibet-plugins.git
+[submodule "MEDIA/youtube-dl"]
+	path = MEDIA/youtube-dl
+	url = https://github.com/ytdl-org/youtube-dl.git
