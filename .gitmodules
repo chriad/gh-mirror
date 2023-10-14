@@ -43,9 +43,6 @@
 [submodule "mkvtag"]
 	path = mkvtag
 	url = https://github.com/ylabonte/mkvtag.git
-[submodule "jellyfin-mpv-shim"]
-	path = MEDIA/jellyfin-mpv-shim
-	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
 [submodule "sway-launcher-desktop"]
 	path = sway-launcher-desktop
 	url = https://github.com/Biont/sway-launcher-desktop.git
@@ -397,3 +394,6 @@
 [submodule "MEDIA/youtube-dl"]
 	path = MEDIA/youtube-dl
 	url = https://github.com/ytdl-org/youtube-dl.git
+[submodule "MEDIA/jellyfin-mpv-shim"]
+	path = MEDIA/jellyfin-mpv-shim
+	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
