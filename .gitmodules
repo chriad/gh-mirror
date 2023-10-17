@@ -41,7 +41,7 @@
 	path = aptik
 	url = https://github.com/teejee2008/aptik.git
 [submodule "mkvtag"]
-	path = mkvtag
+	path = MEDIA/mkvtag
 	url = https://github.com/ylabonte/mkvtag.git
 [submodule "sway-launcher-desktop"]
 	path = sway-launcher-desktop
@@ -137,7 +137,7 @@
 	path = QUADERNO/dpt-rp1-py
 	url = https://github.com/janten/dpt-rp1-py.git
 [submodule "mp4v2"]
-	path = mp4v2
+	path = MEDIA/mp4v2
 	url = https://github.com/enzo1982/mp4v2.git
 [submodule "blanket"]
 	path = blanket
@@ -149,7 +149,7 @@
 	path = PDF/pee-pdf/peepdf
 	url = https://github.com/jesparza/peepdf.git
 [submodule "PDF/ocrodjvu"]
-	path = PDF/ocrodjvu
+	path = EBOOKS/PDF/ocrodjvu
 	url = https://github.com/jwilk/ocrodjvu.git
 [submodule "BOOKS/fullstackwiki"]
 	path = BOOKS/fullstackwiki
@@ -185,7 +185,7 @@
 	path = polar-bookshelf
 	url = https://github.com/burtonator/polar-bookshelf.git
 [submodule "BOOKS/function-composition-cheatsheet"]
-	path = BOOKS/function-composition-cheatsheet
+	path = EBOOKS/SOURCE/function-composition-cheatsheet
 	url = https://github.com/fp-works/function-composition-cheatsheet.git
 [submodule "WEB/worg"]
 	path = WEB/worg
@@ -227,7 +227,7 @@
 	path = EMACS/taskwarrior.el
 	url = https://github.com/winpat/taskwarrior.el.git
 [submodule "PDF/cpdf-binaries"]
-	path = PDF/cpdf-binaries
+	path = EBOOKS/PDF/cpdf-binaries
 	url = https://github.com/coherentgraphics/cpdf-binaries.git
 [submodule "EMACS/org-bib-template"]
 	path = EMACS/org/org-bib-template
@@ -260,7 +260,7 @@
 	path = AWESOME/awesome-cl
 	url = https://github.com/CodyReichert/awesome-cl.git
 [submodule "PDF/mpeepdf"]
-	path = PDF/mpeepdf
+	path = EBOOKS/PDF/mpeepdf
 	url = https://github.com/Tholep/mpeepdf.git
 [submodule "CHEAT-SHEETS/gosukiwi--common-lisp-cheatsheet"]
 	path = CHEAT-SHEETS/gosukiwi--common-lisp-cheatsheet
@@ -344,7 +344,7 @@
 	path = INCUBATOR/network-manager-wireguard
 	url = https://github.com/max-moser/network-manager-wireguard.git
 [submodule "PDF/caradoc"]
-	path = PDF/caradoc
+	path = EBOOKS/PDF/caradoc
 	url = https://github.com/caradoc-org/caradoc.git
 [submodule "BOOKS/sdrforengineers/LectureMaterials"]
 	path = BOOKS/sdrforengineers/LectureMaterials
@@ -356,7 +356,7 @@
 	path = QUADERNO/A4_fw_unpacker
 	url = https://github.com/ygjsz/A4_fw_unpacker.git
 [submodule "PDF/termpdf.py"]
-	path = PDF/termpdf.py
+	path = EBOOKS/PDF/termpdf.py
 	url = https://github.com/dsanson/termpdf.py
 [submodule "BOOKS/voicebook"]
 	path = SOURCE/voicebook
