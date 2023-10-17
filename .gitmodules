@@ -11,7 +11,7 @@
 	path = chezmoi
 	url = git@github.com:twpayne/chezmoi.git
 [submodule "gist-puller"]
-	path = gist-puller
+	path = GIT/gist-puller
 	url = https://gist.github.com/antonydevanchi/69977f626b99cff7048987a357296812
 [submodule "ytcc"]
 	path = ytcc
@@ -44,10 +44,10 @@
 	path = MEDIA/mkvtag
 	url = https://github.com/ylabonte/mkvtag.git
 [submodule "sway-launcher-desktop"]
-	path = sway-launcher-desktop
+	path = UTILS/sway-launcher-desktop
 	url = https://github.com/Biont/sway-launcher-desktop.git
 [submodule "pgtk-emacs-flatpak"]
-	path = pgtk-emacs-flatpak
+	path = FLATHUB/pgtk-emacs-flatpak
 	url = https://github.com/fejfighter/pgtk-emacs-flatpak
 [submodule "OBS/obs-xdg-portal"]
 	path = OBS/obs-xdg-portal
@@ -89,7 +89,7 @@
 	path = BOOKS/book
 	url = https://github.com/rust-lang/book
 [submodule "sort-PhotorecRecoveredFiles"]
-	path = sort-PhotorecRecoveredFiles
+	path = UTILS/sort-PhotorecRecoveredFiles
 	url = https://github.com/tfrdidi/sort-PhotorecRecoveredFiles.git
 [submodule "BOOKS/sobtec2"]
 	path = BOOKS/sobtec2
@@ -98,7 +98,7 @@
 	path = MEDIA/convert-m4b
 	url = https://gist.github.com/a188b8969a539ce0f7a64deb56c00277.git
 [submodule "get_iplayer"]
-	path = get_iplayer
+	path = MEDIA/get_iplayer
 	url = https://github.com/get-iplayer/get_iplayer.git
 [submodule "EMACS/org-protocol-capture-html"]
 	path = EMACS/org/org-protocol-capture-html
@@ -140,7 +140,7 @@
 	path = MEDIA/mp4v2
 	url = https://github.com/enzo1982/mp4v2.git
 [submodule "blanket"]
-	path = blanket
+	path = INCUBATOR/blanket
 	url = https://github.com/rafaelmardojai/blanket/
 [submodule "PDF/pdfxplr"]
 	path = PDF/pdfxplr
@@ -173,7 +173,7 @@
 	path = BOOKS/tyscheme
 	url = https://github.com/ds26gte/tyscheme.git
 [submodule "tex2page"]
-	path = tex2page
+	path = INCUBATOR/tex2page
 	url = https://github.com/ds26gte/tex2page
 [submodule "BOOKS/CL-reference"]
 	path = BOOKS/CL-reference
@@ -368,7 +368,7 @@
 	path = syncthing
 	url = https://github.com/syncthing/syncthing.git
 [submodule "digikambg.sh"]
-	path = digikambg.sh
+	path = UTILS/digikambg.sh
 	url = https://gist.github.com/renovita/86b122fdd0ef0c22201e510d4798d450
 [submodule "no.mifi.losslesscut"]
 	path = FLATHUB/no.mifi.losslesscut
