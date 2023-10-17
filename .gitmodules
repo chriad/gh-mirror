@@ -397,3 +397,9 @@
 [submodule "MEDIA/jellyfin-mpv-shim"]
 	path = MEDIA/jellyfin-mpv-shim
 	url = https://github.com/jellyfin/jellyfin-mpv-shim.git
+[submodule "INCUBATOR/SASM"]
+	path = INCUBATOR/SASM
+	url = https://github.com/Dman95/SASM.git
+[submodule "GIT/git-autocommit"]
+	path = GIT/git-autocommit
+	url = https://gist.github.com/jrmeland/566e7378b89e7f0d4e920c103134878f
