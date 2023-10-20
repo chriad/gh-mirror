@@ -8,7 +8,7 @@
 	path = CHEAT-SHEETS/bash-shortcuts-cheat-sheet
 	url = https://github.com/fliptheweb/bash-shortcuts-cheat-sheet.git
 [submodule "chezmoi"]
-	path = chezmoi
+	path = STOCK/chezmoi
 	url = git@github.com:twpayne/chezmoi.git
 [submodule "gist-puller"]
 	path = GIT/gist-puller
@@ -17,7 +17,7 @@
 	path = ytcc
 	url = git@github.com:woefe/ytcc.git
 [submodule "pythonrc"]
-	path = pythonrc
+	path = PYTHON/pythonrc
 	url = git@github.com:lonetwin/pythonrc.git
 [submodule "user.js"]
 	path = user.js
@@ -29,16 +29,16 @@
 	path = CHEAT-SHEETS/m4dc4p-haskell-cheatsheet
 	url = https://github.com/m4dc4p/cheatsheet.git
 [submodule "CHEAT-SHEETS/scheme-cheat-sheet"]
-	path = CHEAT-SHEETS/scheme-cheat-sheet
+	path = EBOOKS/CHEATSHEETS/scheme-cheat-sheet
 	url = https://github.com/smythp/scheme-cheat-sheet.git
 [submodule "diffoscope"]
 	path = diffoscope
 	url = https://salsa.debian.org/reproducible-builds/diffoscope.git
 [submodule "sync-pass-with-git"]
-	path = sync-pass-with-git
+	path = UTILS/sync-pass-with-git
 	url = https://gist.github.com/abtrout/d64fb11ad6f9f49fa325
 [submodule "aptik"]
-	path = aptik
+	path = INCUBATOR/aptik
 	url = https://github.com/teejee2008/aptik.git
 [submodule "mkvtag"]
 	path = MEDIA/mkvtag
@@ -218,7 +218,7 @@
 	path = BOOKS/concise-cheat-sheets
 	url = https://github.com/rudymatela/concise-cheat-sheets
 [submodule "tiktok_source"]
-	path = tiktok_source
+	path = INCUBATOR/tiktok_source
 	url = https://github.com/huaji233333/tiktok_source.git
 [submodule "AWESOME/awesome-scheme"]
 	path = AWESOME/awesome-scheme
@@ -281,7 +281,7 @@
 	path = BOOKS/wiwinwlh
 	url = https://github.com/sdiehl/wiwinwlh.git
 [submodule "zen-of-py-by-example"]
-	path = zen-of-py-by-example
+	path = PYTHON/zen-of-py-by-example
 	url = https://gist.github.com/evandrix/2030615
 [submodule "notes-on-dirichlet-processes"]
 	path = notes-on-dirichlet-processes
@@ -365,7 +365,7 @@
 	path = INCUBATOR/furby-source
 	url = https://github.com/gnomon-/furby-source.git
 [submodule "syncthing"]
-	path = syncthing
+	path = STOCK/syncthing
 	url = https://github.com/syncthing/syncthing.git
 [submodule "digikambg.sh"]
 	path = UTILS/digikambg.sh
@@ -403,3 +403,9 @@
 [submodule "GIT/git-autocommit"]
 	path = GIT/git-autocommit
 	url = https://gist.github.com/jrmeland/566e7378b89e7f0d4e920c103134878f
+[submodule "MEDIA/audio-offset-finder"]
+	path = MEDIA/audio-offset-finder
+	url = https://github.com/hiisi13/audio-offset-finder.git
+[submodule "MEDIA/ffmpeg-build-script"]
+	path = MEDIA/ffmpeg-build-script
+	url = https://github.com/markus-perl/ffmpeg-build-script.git
