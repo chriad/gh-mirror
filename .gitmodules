@@ -7,9 +7,6 @@
 [submodule "CHEAT-SHEETS/bash-shortcuts-cheat-sheet"]
 	path = CHEAT-SHEETS/bash-shortcuts-cheat-sheet
 	url = https://github.com/fliptheweb/bash-shortcuts-cheat-sheet.git
-[submodule "chezmoi"]
-	path = STOCK/chezmoi
-	url = git@github.com:twpayne/chezmoi.git
 [submodule "gist-puller"]
 	path = GIT/gist-puller
 	url = https://gist.github.com/antonydevanchi/69977f626b99cff7048987a357296812
@@ -409,3 +406,12 @@
 [submodule "MEDIA/ffmpeg-build-script"]
 	path = MEDIA/ffmpeg-build-script
 	url = https://github.com/markus-perl/ffmpeg-build-script.git
+[submodule "EBOOKS/CHEATSHEETS/ranger-cheatsheet"]
+	path = EBOOKS/CHEATSHEETS/ranger-cheatsheet
+	url = https://github.com/oracleyue/ranger-cheatsheet.git
+[submodule "INCUBATOR/dvdremuxer"]
+	path = MEDIA/dvdremuxer
+	url = https://github.com/frgt10/dvdremuxer.git
+[submodule "MEDIA/gpac_public"]
+	path = MEDIA/gpac_public
+	url = https://github.com/gpac/gpac.git
