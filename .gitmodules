@@ -415,3 +415,6 @@
 [submodule "MEDIA/gpac_public"]
 	path = MEDIA/gpac_public
 	url = https://github.com/gpac/gpac.git
+[submodule "MEDIA/ffreplaygain"]
+	path = MEDIA/ffreplaygain
+	url = https://gist.github.com/Yamakaky/0f0546ea0aeb4ed220caa82d814b7d68
