@@ -418,3 +418,15 @@
 [submodule "MEDIA/ffreplaygain"]
 	path = MEDIA/ffreplaygain
 	url = https://gist.github.com/Yamakaky/0f0546ea0aeb4ed220caa82d814b7d68
+[submodule "QUODLIBET/quodlibet"]
+	path = QUODLIBET/quodlibet
+	url = https://github.com/quodlibet/quodlibet.git
+[submodule "MEDIA/PAGES/media-mime-support"]
+	path = MEDIA/PAGES/media-mime-support
+	url = https://github.com/cconcolato/media-mime-support.git
+[submodule "MEDIA/AUDIO/audacious-optimfrog"]
+	path = MEDIA/AUDIO/audacious-optimfrog
+	url = https://github.com/cspiegel/audacious-optimfrog.git
+[submodule "EBOOKS/EPUB/ebread"]
+	path = EBOOKS/EPUB/ebread
+	url = https://codeberg.org/1-1sam/ebread.git
